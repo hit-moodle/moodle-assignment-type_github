@@ -1,9 +1,9 @@
 <?php
 
-class github_repos() {
+class github_repos {
 
-    const TYPE_SINGLE_USER;
-    const TYPE_GROUP;
+    const TYPE_SINGLE_USER = 1;
+    const TYPE_GROUP = 2;
     private $_course;
     private $_assignment;
     private $_user;
@@ -13,28 +13,27 @@ class github_repos() {
 
     public function __construct($course, $assignment, $user, $group) {
         global $CFG;
-
         $this->_course = $course;
         $this->_assignment = $assignment;
         $this->_user = $user;
         $this->_group = $group;
-        $this->_table = $CFG->prefix.'assignment_github_repos';
+        $this->_table = 'assignment_github_repos';
 
         //TODO: get a Github API instance
     }
 
-    public function get_by_user($uesr) {
+    public function get_by_user($user) {
 
         $conditions = array(
             'course' => $this->_course,
             'assignment' => $this->_assignment,
-            'group' => 0,
+            'gid' => 0,
         );
 
         if (is_object($user)) {
-            $conditions['user'] = $user->id;
+            $conditions['uid'] = $user->id;
         } else if (is_int($user)) {
-            $conditions['user'] = $user;
+            $conditions['uid'] = $user;
         } else {
             return false;
         }
@@ -52,13 +51,13 @@ class github_repos() {
         $conditions = array(
             'course' => $this->_course,
             'assignment' => $this->_assignment,
-            'user' => 0,
+            'uid' => 0,
         );
 
         if (is_object($group)) {
-            $conditions['group'] = $group->id;
+            $conditions['gid'] = $group->id;
         } else if (is_int($group)) {
-            $conditions['group'] = $group;
+            $conditions['gid'] = $group;
         } else {
             return false;
         }
@@ -82,7 +81,14 @@ class github_repos() {
     private function get_records($conditions, $sort='', $fields=array(), $limitfrom=0, $limitnum=0) {
         global $DB;
 
-        $fields = implode($fileds, ',');
+        if(!$fields) {
+            $fields = '*';
+        } else if (is_array($fields)) {
+            $fields = implode($fileds, ',');
+        } else {
+            return false;
+        }
+
         try {
             $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom=0, $limitnum=0);
             if ($result) {
@@ -120,22 +126,57 @@ class github_repos() {
 
         $data->course = $this->_course;
         $data->assignment = $this->_assignment;
-        $data->created = time();
-        $data->created_user = $this->_user;
 
         if ($type === self::TYPE_SINGLE_USER) {
-            $data->user = $this->_user;
-            $data->group = 0;
+            $data->uid = $this->_user;
+            $data->gid = 0;
         } else if ($type === self::TYPE_GROUP) {
-            $data->user = 0;
-            $data->group = $this->_group;
+            $data->uid = 0;
+            $data->gid = $this->_group;
         } else {
             throw new Exception(get_string('unknowntype', 'assignment_github'));
             return false;
         }
 
+        $data->created = time();
+        $data->created_user = $this->_user;
+
         try {
             return $DB->insert_record($this->_table, $data);
+        } catch(Exception $e) {
+            return false;
+        }
+    }
+
+    public function update_repo($id, $username, $repo, $members) {
+
+        //TODO:Get url, owner, repo_created from Github API
+
+        $data = array(
+            'id' => $id,
+            'username' => $username,
+            'repo' => $repo,
+            'members' => json_encode($members),
+        );
+
+        return $this->update_record($data, $type);
+    }
+
+    private function update_record($data) {
+        global $DB;
+
+        if (is_array($data)) {
+            $data = (object)$data;
+        } else if (!is_object($data)) {
+            return false;
+        }
+
+        if (!$data->id) {
+            return false;
+        }
+        
+        try {
+            return $DB->update_record($this->_table, $data);
         } catch(Exception $e) {
             return false;
         }
