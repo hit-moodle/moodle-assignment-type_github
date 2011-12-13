@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/assignment/type/github/db" VERSION="20111212" COMMENT="XMLDB file for Moodle mod/assignment/type/github"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="assignment_github_repos" COMMENT="Github project records">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course ID" PREVIOUS="id" NEXT="assignment"/>
+        <FIELD NAME="assignment" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Assignment ID" PREVIOUS="course" NEXT="user"/>
+        <FIELD NAME="user" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID" PREVIOUS="assignment" NEXT="group"/>
+        <FIELD NAME="group" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Group ID" PREVIOUS="user" NEXT="username"/>
+        <FIELD NAME="username" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Github user's name or orgnization's name" PREVIOUS="group" NEXT="repo"/>
+        <FIELD NAME="repo" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Repository name" PREVIOUS="username" NEXT="members"/>
+        <FIELD NAME="members" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Member list" PREVIOUS="repo" NEXT="url"/>
+        <FIELD NAME="url" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Repository's URL" PREVIOUS="members" NEXT="owner"/>
+        <FIELD NAME="owner" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Repository's owner" PREVIOUS="url" NEXT="repo_created"/>
+        <FIELD NAME="repo_created" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Repository's created time" PREVIOUS="owner" NEXT="created_user"/>
+        <FIELD NAME="created_user" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who create a record" PREVIOUS="repo_created" NEXT="updated_user"/>
+        <FIELD NAME="updated_user" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who update this record" PREVIOUS="created_user" NEXT="created"/>
+        <FIELD NAME="created" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record created time" PREVIOUS="updated_user" NEXT="updated"/>
+        <FIELD NAME="updated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record updated time" PREVIOUS="created"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="course"/>
+        <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id" COMMENT="Course" PREVIOUS="primary" NEXT="assignment"/>
+        <KEY NAME="assignment" TYPE="foreign" FIELDS="assignment" REFTABLE="assignment" REFFIELDS="id" COMMENT="Assignment ID" PREVIOUS="course" NEXT="user"/>
+        <KEY NAME="user" TYPE="foreign" FIELDS="user" REFTABLE="user" REFFIELDS="id" COMMENT="User ID" PREVIOUS="assignment" NEXT="group"/>
+        <KEY NAME="group" TYPE="foreign" FIELDS="group" REFTABLE="groups" REFFIELDS="id" COMMENT="Group ID" PREVIOUS="user"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ids" UNIQUE="true" FIELDS="course, assignment, user, group" COMMENT="Course, assignment, user, group"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
