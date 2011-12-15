@@ -4,7 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->dirroot.'/mod/assignment/lib.php');
-require_once(dirname(__FILE__).'/modules.php');
+require_once(dirname(__FILE__).'/config.php');
 
 class assignment_github extends assignment_base {
 

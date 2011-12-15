@@ -1,6 +1,6 @@
 <?php
 
-class github_repos {
+class github_repo {
 
     const TYPE_SINGLE_USER = 1;
     const TYPE_GROUP = 2;
@@ -27,13 +27,13 @@ class github_repos {
         $conditions = array(
             'course' => $this->_course,
             'assignment' => $this->_assignment,
-            'gid' => 0,
+            'groupid' => 0,
         );
 
         if (is_object($user)) {
-            $conditions['uid'] = $user->id;
+            $conditions['userid'] = $user->id;
         } else if (is_int($user)) {
-            $conditions['uid'] = $user;
+            $conditions['userid'] = $user;
         } else {
             return false;
         }
@@ -51,13 +51,13 @@ class github_repos {
         $conditions = array(
             'course' => $this->_course,
             'assignment' => $this->_assignment,
-            'uid' => 0,
+            'userid' => 0,
         );
 
         if (is_object($group)) {
-            $conditions['gid'] = $group->id;
+            $conditions['groupid'] = $group->id;
         } else if (is_int($group)) {
-            $conditions['gid'] = $group;
+            $conditions['groupid'] = $group;
         } else {
             return false;
         }
@@ -128,11 +128,11 @@ class github_repos {
         $data->assignment = $this->_assignment;
 
         if ($type === self::TYPE_SINGLE_USER) {
-            $data->uid = $this->_user;
-            $data->gid = 0;
+            $data->userid = $this->_user;
+            $data->groupid = 0;
         } else if ($type === self::TYPE_GROUP) {
-            $data->uid = 0;
-            $data->gid = $this->_group;
+            $data->userid = 0;
+            $data->groupid = $this->_group;
         } else {
             throw new Exception(get_string('unknowntype', 'assignment_github'));
             return false;
