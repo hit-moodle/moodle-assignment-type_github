@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="assignment_github_repos" COMMENT="Github project records" NEXT="assignment">
+    <TABLE NAME="assignment_github_repos" COMMENT="Github project records">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course ID" PREVIOUS="id" NEXT="assignment"/>
@@ -30,32 +30,6 @@
         <INDEX NAME="github_repo_assignment" UNIQUE="false" FIELDS="assignment" PREVIOUS="github_repo_course" NEXT="github_repo_userid"/>
         <INDEX NAME="github_repo_userid" UNIQUE="false" FIELDS="userid" PREVIOUS="github_repo_assignment" NEXT="github_repo_groupid"/>
         <INDEX NAME="github_repo_groupid" UNIQUE="false" FIELDS="groupid" PREVIOUS="github_repo_userid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="assignment" COMMENT="assignment table retrofitted from MySQL" PREVIOUS="assignment_github_repos">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false" PREVIOUS="course" NEXT="intro"/>
-        <FIELD NAME="intro" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="introformat"/>
-        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="intro" NEXT="assignmenttype"/>
-        <FIELD NAME="assignmenttype" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="" SEQUENCE="false" PREVIOUS="introformat" NEXT="resubmit"/>
-        <FIELD NAME="resubmit" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="assignmenttype" NEXT="preventlate"/>
-        <FIELD NAME="preventlate" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="resubmit" NEXT="emailteachers"/>
-        <FIELD NAME="emailteachers" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="preventlate" NEXT="var1"/>
-        <FIELD NAME="var1" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="emailteachers" NEXT="var2"/>
-        <FIELD NAME="var2" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="var1" NEXT="var3"/>
-        <FIELD NAME="var3" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="var2" NEXT="var4"/>
-        <FIELD NAME="var4" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="var3" NEXT="var5"/>
-        <FIELD NAME="var5" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="var4" NEXT="maxbytes"/>
-        <FIELD NAME="maxbytes" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="100000" SEQUENCE="false" PREVIOUS="var5" NEXT="timedue"/>
-        <FIELD NAME="timedue" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="maxbytes" NEXT="timeavailable"/>
-        <FIELD NAME="timeavailable" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timedue" NEXT="grade"/>
-        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="timeavailable" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="grade"/>
-      </FIELDS>
-      <INDEXES>
-        <INDEX NAME="mdl_assi_cou_ix" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
   </TABLES>
