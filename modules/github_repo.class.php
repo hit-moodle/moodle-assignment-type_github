@@ -2,24 +2,23 @@
 
 class github_repo {
 
-    const TYPE_SINGLE_USER = 1;
-    const TYPE_GROUP = 2;
     private $_course;
     private $_assignment;
     private $_user;
     private $_group;
     private $_table;
     private $_github;
+    private $_time_fields = array('repo_created', 'created', 'updated');
 
-    public function __construct($course, $assignment, $user, $group) {
+    public function __construct($course, $assignment, $user, $group = 0) {
         global $CFG;
+
         $this->_course = $course;
         $this->_assignment = $assignment;
         $this->_user = $user;
         $this->_group = $group;
         $this->_table = 'assignment_github_repos';
-
-        //TODO: get a Github API instance
+        $this->_github = new Github_Client();
     }
 
     public function get_by_user($user) {
@@ -74,7 +73,10 @@ class github_repo {
 
         $record->members = json_decode($record->members, true);
 
-        //TODO: time convert to Y-m-d H:i:s ?
+        // time convert to Y-m-d H:i:s
+        foreach($this->_time_fields as $field) {
+            $record->$field = date('Y-m-d H:i:s', $record->$field);
+        }
         return $record;
     }
 
@@ -104,12 +106,20 @@ class github_repo {
 
     public function add_repo($username, $repo, $members, $type) {
         
-        //TODO:Get url, owner, repo_created from Github API
+        try {
+            $repo = $this->get_repo_info($username, $repo);
+        } catch(Exception $e) {
+            throw new Exception($e);
+            return false;
+        }
 
         $data = array(
             'username' => $username,
             'repo' => $repo,
             'members' => json_encode($members),
+            'url' => $repo->url,
+            'owner' => $repo->owner,
+            'repo_created' => strtotime($repo->created_at),
         );
 
         return $this->add_record($data, $type);
@@ -127,10 +137,10 @@ class github_repo {
         $data->course = $this->_course;
         $data->assignment = $this->_assignment;
 
-        if ($type === self::TYPE_SINGLE_USER) {
+        if ($type == NOGROUPS) {
             $data->userid = $this->_user;
             $data->groupid = 0;
-        } else if ($type === self::TYPE_GROUP) {
+        } else if ($type == SEPARATEGROUPS || $type == VISIBLEGROUPS) {
             $data->userid = 0;
             $data->groupid = $this->_group;
         } else {
@@ -150,13 +160,21 @@ class github_repo {
 
     public function update_repo($id, $username, $repo, $members) {
 
-        //TODO:Get url, owner, repo_created from Github API
+        try {
+            $repo = $this->get_repo_info($username, $repo);
+        } catch(Exception $e) {
+            throw new Exception($e);
+            return false;
+        }
 
         $data = array(
             'id' => $id,
             'username' => $username,
             'repo' => $repo,
             'members' => json_encode($members),
+            'url' => $repo->url,
+            'owner' => $repo->owner,
+            'repo_created' => strtotime($repo->created_at),
         );
 
         return $this->update_record($data, $type);
@@ -180,5 +198,16 @@ class github_repo {
         } catch(Exception $e) {
             return false;
         }
+    }
+
+    private function get_repo_info($username, $repository) {
+
+        try {
+            $repo = $this->_github->getRepoApi()->show($username, $repository);
+        } catch(Exception $e) {
+            throw new Exception($e);
+        }
+
+        return $repo;
     }
 }
