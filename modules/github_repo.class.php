@@ -115,7 +115,7 @@ class github_repo {
 
         $data = array(
             'username' => $username,
-            'repo' => $repo,
+            'repo' => $repo->name,
             'members' => json_encode($members),
             'url' => $repo->url,
             'owner' => $repo->owner,
@@ -170,7 +170,7 @@ class github_repo {
         $data = array(
             'id' => $id,
             'username' => $username,
-            'repo' => $repo,
+            'repo' => $repo->name,
             'members' => json_encode($members),
             'url' => $repo->url,
             'owner' => $repo->owner,
@@ -200,7 +200,7 @@ class github_repo {
         }
     }
 
-    private function get_repo_info($username, $repository) {
+    public function get_repo_info($username, $repository) {
 
         try {
             $repo = $this->_github->getRepoApi()->show($username, $repository);
@@ -208,6 +208,6 @@ class github_repo {
             throw new Exception($e);
         }
 
-        return $repo;
+        return (object)$repo;
     }
 }
