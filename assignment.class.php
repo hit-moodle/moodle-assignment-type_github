@@ -95,6 +95,7 @@ class assignment_github extends assignment_base {
             if (!$saved) {
                 // TODO: display an error message
             }
+            $repo = $this->get_repo();
         }
 
         if(!$repo || $editmode) {
