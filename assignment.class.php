@@ -86,16 +86,16 @@ class assignment_github extends assignment_base {
         $repo = $this->get_repo();
         
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        echo '<h3>'.get_string('githubreposetting', 'assignment_github').'</h3>';
+        echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'));
 
         $mform = new mod_assignment_github_edit_form();
         if ($github_info = $mform->get_submitted_data()) {
             $saved = $this->save_repo($repo->id, $github_info);
+            $repo = $this->get_repo();
 
             if (!$saved) {
                 // TODO: display an error message
             }
-            $repo = $this->get_repo();
         }
 
         if(!$repo || $editmode) {
@@ -114,13 +114,14 @@ class assignment_github extends assignment_base {
      *               will call get_repo to get the repository's infomation
      */
     private function show_repo($repository = null) {
-        global $USER, $OUTPUT;
+        global $USER, $OUTPUT, $PAGE;
 
         if (!$repository) {
             $repository = $this->get_repo();
         }
 
         if ($repository) {
+            echo $OUTPUT->box_start('generalbox boxaligncenter');
             $table = new html_table();
 
             $username_row = new html_table_row();
@@ -150,10 +151,29 @@ class assignment_github extends assignment_base {
             $table->data = array($username_row, $repository_row);
 
             echo html_writer::table($table);
+            echo $OUTPUT->box_end('generalbox boxaligncenter');
+
+            // Group mode and the user is not a member of this group,
+            // do not show the edit button
+            if ($this->group->mode && !$this->group->ismember) {
+                return;
+            }
+
+            $url = $PAGE->url;
+            if ($this->group->mode && $this->group->ismember) {
+                $url->param('group', $this->group->id);
+            }
+            
+            echo $OUTPUT->edit_button($url);
             return;
         }
 
-        //TODO: show the user/group's repository is not set
+        if ($this->group->mode && !$this->group->id) {
+            echo $OUTPUT->notification(get_string('choosegroup', 'assignment_github'));
+            return;
+        }
+
+        echo $OUTPUT->notification(get_string('repohasnotset', 'assignment_github'));
     }
 
     /**

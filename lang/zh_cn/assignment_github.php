@@ -12,4 +12,7 @@ $string['editrepository_help'] = '容器的名称';
 $string['username/organization'] = '用户或组织';
 $string['repositoryname'] = '容器名称';
 
+$string['repohasnotset'] = '此用户或分组的容器尚未设置';
+$string['choosegroup'] = '请先选择一个分组';
+
 ?>

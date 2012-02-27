@@ -12,4 +12,7 @@ $string['editrepository_help'] = 'The repository\'s name.';
 $string['username/organization'] = 'Username or Organization';
 $string['repositoryname'] = 'Repository Name';
 
+$string['repohasnotset'] = 'This user\'s or group\'s repo has not yet set.';
+$string['choosegroup'] = 'Please select a group first.';
+
 ?>
