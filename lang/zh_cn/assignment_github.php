@@ -15,4 +15,7 @@ $string['repositoryname'] = '容器名称';
 $string['repohasnotset'] = '此用户或分组的容器尚未设置';
 $string['choosegroup'] = '请先选择一个分组';
 
+$string['member'] = '成员 ';
+$string['member_help'] = '这个小组成员在GitHub上的用户名';
+$string['memberlist'] = '成员列表';
 ?>

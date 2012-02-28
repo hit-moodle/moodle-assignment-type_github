@@ -9,7 +9,10 @@ require_once(dirname(__FILE__).'/config.php');
 class assignment_github extends assignment_base {
 
     private $group;
+
     private $github_repo;
+
+    private $capability_grade = false;
 
     private $github_root = 'https://github.com';
 
@@ -17,6 +20,10 @@ class assignment_github extends assignment_base {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'github';
         $this->group = new stdClass();
+
+        if (has_capability('mod/assignment:grade', $this->context)) {
+            $this->capability_grade = true;
+        }
     }
 
     function view() {
@@ -43,6 +50,7 @@ class assignment_github extends assignment_base {
      *   mode: if this assignment is group mode
      *   id: group id
      *   ismember: if current user is in this group
+     *   members: array
      */
     private function init_group() {
         global $USER;
@@ -50,6 +58,9 @@ class assignment_github extends assignment_base {
         $this->group->mode = groups_get_activity_groupmode($this->cm);
         $this->group->id = groups_get_activity_group($this->cm);
         $this->group->ismember = groups_is_member($this->group->id);
+        if ($this->group->id) {
+            $this->group->members = $this->get_members_by_id($this->group->id);
+        }
     }
 
     /**
@@ -76,11 +87,6 @@ class assignment_github extends assignment_base {
 
         $this->init_group();
 
-        if ($this->group->mode == VISIBLEGROUPS && !$this->group->id) {
-            //TODO: show all repos' info of this assignment
-            //      return
-        }
-
         $editmode = optional_param('edit', 0, PARAM_BOOL);
         $this->github_repo = new github_repo($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
         $repo = $this->get_repo();
@@ -88,7 +94,7 @@ class assignment_github extends assignment_base {
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'));
 
-        $mform = new mod_assignment_github_edit_form();
+        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group));
         if ($github_info = $mform->get_submitted_data()) {
             $saved = $this->save_repo($repo->id, $github_info);
             $repo = $this->get_repo();
@@ -148,14 +154,35 @@ class assignment_github extends assignment_base {
             $username_row->cells = array($username_cell_header, $username_cell_content);
             $repository_row->cells = array($repository_cell_header, $repository_cell_content);
 
-            $table->data = array($username_row, $repository_row);
+            $single_row = new html_table_row();
+            $single_cell_header = new html_table_cell();
+            $single_cell_header->header = true;
+            $single_cell_header->text = get_string('memberlist', 'assignment_github');
+            $single_row->cells = array($single_cell_header);
+
+            $table->data = array($username_row, $repository_row, $single_row);
+
+            if ($repository->members) {
+                foreach($repository->members as $id => $username) {
+                    $member_row = new html_table_row();
+                    $member_cell_header = new html_table_cell();
+                    $member_cell_content = new html_table_cell();
+                    $member_cell_header->header = true;
+                    $member_cell_header->text = fullname($this->group->members[$id]);
+                    $member_cell_content->text = html_writer::link($this->github_root . '/' . $username,
+                                                                   $username,
+                                                                   array('target' => '_blank'));
+                    $member_row->cells = array($member_cell_header, $member_cell_content);
+                    $table->data[] = $member_row;
+                }
+            }
 
             echo html_writer::table($table);
             echo $OUTPUT->box_end('generalbox boxaligncenter');
 
             // Group mode and the user is not a member of this group,
             // do not show the edit button
-            if ($this->group->mode && !$this->group->ismember) {
+            if ($this->group->mode && !$this->group->ismember && !$this->capability_grade) {
                 return;
             }
 
@@ -190,12 +217,15 @@ class assignment_github extends assignment_base {
         $members = array();
 
         // Group mode, check permission
-        if ($mode && !$this->group->ismember) {
+        if ($mode && !$this->group->ismember && !$this->capability_grade) {
             return false;
         }
 
-        if ($mode && $this->group->ismember) {
-            //TODO: fill members' info in Array $members
+        if (($mode && $this->group->ismember) || $this->capability_grade) {
+            foreach($this->group->members as $member) {
+                $element_name = 'member_' . $member->id;
+                $members[$member->id] = $github_info->$element_name;
+            }
         }
 
         if ($repoid) {
@@ -216,16 +246,12 @@ class assignment_github extends assignment_base {
         global $PAGE;
 
         // Group mode, check permission
-        if ($this->group->mode && !$this->group->ismember) {
+        if ($this->group->mode && !$this->group->ismember && !$this->capability_grade) {
             return $this->show_repo();
         }
 
         $PAGE->url->remove_params('edit');
-        $mform = new mod_assignment_github_edit_form($PAGE->url->out());
-
-        if ($repo) {
-            $mform->set_data(array('username' => $repo->username, 'repo' => $repo->repo));
-        }
+        $mform = new mod_assignment_github_edit_form($PAGE->url->out(), array('group' => $this->group, 'repo' => $repo));
         $mform->display();
 
     }
@@ -252,17 +278,39 @@ class mod_assignment_github_edit_form extends moodleform {
     function definition() {
 
         $mform = $this->_form;
+        $repo = $this->_customdata['repo'];
 
         // visible elements
         $mform->addElement('text', 'username', 'Username');
-        $mform->setHelpButton('username', array('editusername', 'username', 'assignment_github'));
+        @$mform->setHelpButton('username', array('editusername', 'username', 'assignment_github'));
         $mform->setType('username', PARAM_ALPHANUMEXT);
         $mform->addRule('username', get_string('required'), 'required', null, 'client');
 
         $mform->addElement('text', 'repo', 'Repository');
-        $mform->setHelpButton('repo', array('editrepository', 'repo', 'assignment_github'));
+        @$mform->setHelpButton('repo', array('editrepository', 'repo', 'assignment_github'));
         $mform->setType('repo', PARAM_ALPHANUMEXT);
         $mform->addRule('repo', get_string('required'), 'required', null, 'client');
+
+        $group = $this->_customdata['group'];
+        if ($group->mode) {
+            foreach($group->members as $member) {
+                $element_name = 'member_' . $member->id;
+                $mform->addElement('text', $element_name, get_string('member', 'assignment_github') . fullname($member));
+                @$mform->setHelpButton($element_name, array('member', $element_name, 'assignment_github'));
+                $mform->setType($element_name, PARAM_ALPHANUMEXT);
+            }
+        }
+
+        if ($repo) {
+            $mform->setDefault('username', $repo->username);
+            $mform->setDefault('repo', $repo->repo);
+            if ($repo->members) {
+                foreach($repo->members as $id => $username) {
+                    $element_name = 'member_' . $id;
+                    $mform->setDefault($element_name, $username);
+                }
+            }
+        }
 
         // buttons
         $this->add_action_buttons(false);

@@ -15,4 +15,7 @@ $string['repositoryname'] = 'Repository Name';
 $string['repohasnotset'] = 'This user\'s or group\'s repo has not yet set.';
 $string['choosegroup'] = 'Please select a group first.';
 
+$string['member'] = 'Member ';
+$string['member_help'] = 'GitHub Username of this member.';
+$string['memberlist'] = 'Member List';
 ?>
