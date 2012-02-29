@@ -246,7 +246,7 @@ class assignment_github extends assignment_base {
         global $PAGE;
 
         // Group mode, check permission
-        if ($this->group->mode && !$this->group->ismember && !$this->capability_grade) {
+        if ($this->group->mode && !$this->group->ismember && (!$this->capability_grade || !$this->group->id)) {
             return $this->show_repo();
         }
 
