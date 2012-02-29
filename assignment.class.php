@@ -56,8 +56,17 @@ class assignment_github extends assignment_base {
         global $USER;
 
         $this->group->mode = groups_get_activity_groupmode($this->cm);
-        $this->group->id = groups_get_activity_group($this->cm);
+        $aag = has_capability('moodle/site:accessallgroups', $this->context);
+
+        if ($this->group->mode == VISIBLEGROUPS or $aag) {
+            $allowedgroups = groups_get_all_groups($this->cm->course, 0, $this->cm->groupingid); // only assigned groups
+        } else {
+            $allowedgroups = groups_get_all_groups($this->cm->course, $USER->id, $this->cm->groupingid); // only assigned groups
+        }
+
+        $this->group->id = groups_get_activity_group($this->cm, true, $allowedgroups);
         $this->group->ismember = groups_is_member($this->group->id);
+
         if ($this->group->id) {
             $this->group->members = $this->get_members_by_id($this->group->id);
         }

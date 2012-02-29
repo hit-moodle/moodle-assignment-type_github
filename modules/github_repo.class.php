@@ -31,10 +31,8 @@ class github_repo {
 
         if (is_object($user)) {
             $conditions['userid'] = $user->id;
-        } else if (is_int($user)) {
-            $conditions['userid'] = $user;
         } else {
-            return false;
+            $conditions['userid'] = intval($user);
         }
 
         $result = $this->get_records($conditions);
@@ -55,10 +53,8 @@ class github_repo {
 
         if (is_object($group)) {
             $conditions['groupid'] = $group->id;
-        } else if (is_int($group)) {
-            $conditions['groupid'] = $group;
         } else {
-            return false;
+            $conditions['groupid'] = intval($group);
         }
 
         $result = $this->get_records($conditions);
