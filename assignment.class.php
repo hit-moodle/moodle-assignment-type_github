@@ -10,9 +10,7 @@ class assignment_github extends assignment_base {
 
     private $group;
 
-    private $github_repo;
-
-    private $github_root = 'https://github.com';
+    private $git;
 
     private $capability = array();
 
@@ -108,14 +106,14 @@ class assignment_github extends assignment_base {
     private function get_repo() {
         global $USER;
 
-        if (!$this->github_repo) {
-            $this->github_repo = new github_repo($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
+        if (!$this->git) {
+            $this->git = new git($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
         }
 
         if($this->group->mode) {
-            return $this->github_repo->get_by_group($this->group->id);
+            return $this->git->get_by_group($this->group->id);
         } else {
-            return $this->github_repo->get_by_user($USER);
+            return $this->git->get_by_user($USER->id);
         }
     }
 
@@ -126,7 +124,6 @@ class assignment_github extends assignment_base {
         $this->init_permission();
 
         $editmode = optional_param('edit', 0, PARAM_BOOL);
-        $this->github_repo = new github_repo($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
         $repo = $this->get_repo();
         
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
@@ -165,57 +162,49 @@ class assignment_github extends assignment_base {
         }
 
         if ($repository) {
+            $service = $this->git->get_api_service($repository->server);
+
             echo $OUTPUT->box_start('generalbox boxaligncenter');
+            echo html_writer::tag('h4', get_string('repository', 'assignment_github'));
             $table = new html_table();
 
-            $username_row = new html_table_row();
-            $username_cell_header = new html_table_cell();
-            $username_cell_content = new html_table_cell();
             $repository_row = new html_table_row();
             $repository_cell_header = new html_table_cell();
             $repository_cell_content = new html_table_cell();
 
-            $username_cell_header->text = get_string('username/organization', 'assignment_github');
             $repository_cell_header->text = get_string('repositoryname', 'assignment_github');
-            $username_cell_header->header = $repository_cell_header->header = true;
+            $repository_cell_header->header = true;
 
-            $user_link = html_writer::link($this->github_root . '/' . $repository->username,
-                                           $repository->username,
-                                           array('target' => '_blank'));
-            $repo_link = html_writer::link($repository->url,
+            $links = $service->generate_http_from_git($repository->url);
+            $repo_link = html_writer::link($links['repo'],
                                            $repository->repo,
                                            array('target' => '_blank'));
 
-            $username_cell_content->text = $user_link;
             $repository_cell_content->text = $repo_link;
 
-            $username_row->cells = array($username_cell_header, $username_cell_content);
             $repository_row->cells = array($repository_cell_header, $repository_cell_content);
 
-            $single_row = new html_table_row();
-            $single_cell_header = new html_table_cell();
-            $single_cell_header->header = true;
-            $single_cell_header->text = get_string('memberlist', 'assignment_github');
-            $single_row->cells = array($single_cell_header);
+            $table->data = array($repository_row);
+            echo html_writer::table($table);
 
-            $table->data = array($username_row, $repository_row, $single_row);
-
-            if ($repository->members) {
-                foreach($repository->members as $id => $username) {
+            if ($repository->members && $this->capability['edit']) {
+                echo html_writer::tag('h4', get_string('memberlist', 'assignment_github'));
+                $member_table = new html_table();
+                foreach($repository->members as $id => $email) {
                     $member_row = new html_table_row();
                     $member_cell_header = new html_table_cell();
                     $member_cell_content = new html_table_cell();
                     $member_cell_header->header = true;
                     $member_cell_header->text = fullname($this->group->members[$id]);
-                    $member_cell_content->text = html_writer::link($this->github_root . '/' . $username,
-                                                                   $username,
+                    $member_cell_content->text = html_writer::link('mailto:' . $email,
+                                                                   $email,
                                                                    array('target' => '_blank'));
                     $member_row->cells = array($member_cell_header, $member_cell_content);
-                    $table->data[] = $member_row;
+                    $member_table->data[] = $member_row;
                 }
+                echo html_writer::table($member_table);
             }
 
-            echo html_writer::table($table);
             echo $OUTPUT->box_end('generalbox boxaligncenter');
 
             // Group mode and the user is not a member of this group,
@@ -267,9 +256,9 @@ class assignment_github extends assignment_base {
         }
 
         if ($repoid) {
-            return $this->github_repo->update_repo($repoid, $github_info->username, $github_info->repo, $members);
+            return $this->git->update_repo($repoid, $github_info->url, $members);
         } else {
-            return $this->github_repo->add_repo($github_info->username, $github_info->repo, $members, $groupmode);
+            return $this->git->add_repo($github_info->url, $members, $groupmode);
         }
 
         return false;
@@ -319,15 +308,10 @@ class mod_assignment_github_edit_form extends moodleform {
         $repo = $this->_customdata['repo'];
 
         // visible elements
-        $mform->addElement('text', 'username', 'Username');
-        @$mform->setHelpButton('username', array('editusername', 'username', 'assignment_github'));
-        $mform->setType('username', PARAM_ALPHANUMEXT);
-        $mform->addRule('username', get_string('required'), 'required', null, 'client');
-
-        $mform->addElement('text', 'repo', 'Repository');
-        @$mform->setHelpButton('repo', array('editrepository', 'repo', 'assignment_github'));
-        $mform->setType('repo', PARAM_ALPHANUMEXT);
-        $mform->addRule('repo', get_string('required'), 'required', null, 'client');
+        $mform->addElement('text', 'url', 'Repository');
+        @$mform->setHelpButton('url', array('editrepository', 'url', 'assignment_github'));
+        $mform->setType('url', PARAM_TEXT);
+        $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
         $group = $this->_customdata['group'];
         if ($group->mode) {
@@ -335,18 +319,23 @@ class mod_assignment_github_edit_form extends moodleform {
                 $element_name = 'member_' . $member->id;
                 $mform->addElement('text', $element_name, get_string('member', 'assignment_github') . fullname($member));
                 @$mform->setHelpButton($element_name, array('member', $element_name, 'assignment_github'));
-                $mform->setType($element_name, PARAM_ALPHANUMEXT);
+                $mform->setType($element_name, PARAM_EMAIL);
             }
         }
 
         if ($repo) {
-            $mform->setDefault('username', $repo->username);
-            $mform->setDefault('repo', $repo->repo);
-            if ($repo->members) {
-                foreach($repo->members as $id => $username) {
-                    $element_name = 'member_' . $id;
-                    $mform->setDefault($element_name, $username);
+            $mform->setDefault('url', $repo->url);
+        }
+
+        if ($group->members) {
+            foreach($group->members as $id => $user) {
+                $element_name = 'member_' . $id;
+                if ($repo->members[$id]) {
+                    $email = $repo->members[$id];
+                } else {
+                    $email = $user->email;
                 }
+                $mform->setDefault($element_name, $email);
             }
         }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/assignment/type/github/db" VERSION="20111215" COMMENT="XMLDB file for Moodle mod/assignment/type/github"
+<XMLDB PATH="mod/assignment/type/github/db" VERSION="20120303" COMMENT="XMLDB file for Moodle mod/assignment/type/github"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
 >
@@ -10,14 +10,12 @@
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course ID" PREVIOUS="id" NEXT="assignment"/>
         <FIELD NAME="assignment" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Assignment ID" PREVIOUS="course" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID" PREVIOUS="assignment" NEXT="groupid"/>
-        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Group ID" PREVIOUS="userid" NEXT="username"/>
-        <FIELD NAME="username" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Github user's name or orgnization's name" PREVIOUS="groupid" NEXT="repo"/>
-        <FIELD NAME="repo" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Repository name" PREVIOUS="username" NEXT="members"/>
-        <FIELD NAME="members" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Member list" PREVIOUS="repo" NEXT="url"/>
-        <FIELD NAME="url" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Repository's URL" PREVIOUS="members" NEXT="owner"/>
-        <FIELD NAME="owner" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Repository's owner" PREVIOUS="url" NEXT="repo_created"/>
-        <FIELD NAME="repo_created" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Repository's created time" PREVIOUS="owner" NEXT="created_user"/>
-        <FIELD NAME="created_user" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who create a record" PREVIOUS="repo_created" NEXT="updated_user"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Group ID" PREVIOUS="userid" NEXT="repo"/>
+        <FIELD NAME="repo" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Repository name" PREVIOUS="groupid" NEXT="server"/>
+        <FIELD NAME="server" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Server of the respository" PREVIOUS="repo" NEXT="url"/>
+        <FIELD NAME="url" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Repository's URL" PREVIOUS="server" NEXT="members"/>
+        <FIELD NAME="members" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="Member list" PREVIOUS="url" NEXT="created_user"/>
+        <FIELD NAME="created_user" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who create a record" PREVIOUS="members" NEXT="updated_user"/>
         <FIELD NAME="updated_user" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who update this record" PREVIOUS="created_user" NEXT="created"/>
         <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record created time" PREVIOUS="updated_user" NEXT="updated"/>
         <FIELD NAME="updated" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record updated time" PREVIOUS="created"/>
