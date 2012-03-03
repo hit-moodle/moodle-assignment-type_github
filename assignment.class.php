@@ -12,18 +12,14 @@ class assignment_github extends assignment_base {
 
     private $github_repo;
 
-    private $capability_grade = false;
-
     private $github_root = 'https://github.com';
+
+    private $capability = array();
 
     function assignment_github($cmid='staticonly', $assignment=NULL, $cm=NULL, $course=NULL) {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'github';
         $this->group = new stdClass();
-
-        if (has_capability('mod/assignment:grade', $this->context)) {
-            $this->capability_grade = true;
-        }
     }
 
     function view() {
@@ -72,6 +68,38 @@ class assignment_github extends assignment_base {
         }
     }
 
+    private function init_permission() {
+
+        if (!$this->group) {
+            $this->init_group();
+        }
+    
+        if (has_capability('mod/assignment:grade', $this->context)) {
+            $this->capability['view'] = true;
+            $this->capability['edit'] = true;
+            $this->capability['grade'] = true;
+            return;
+        }
+
+        if ($this->group->mode == VISIBLEGROUPS) {
+            $this->capability['view'] = true;
+            if ($this->group->ismember) {
+                $this->capability['edit'] = true;
+            }
+            return;
+        }
+
+        if ($this->group->mode == SEPARATEGROUPS) {
+            if ($this->group->ismember) {
+                $this->capability['view'] = true;
+                $this->capability['edit'] = true;
+            }
+            return;
+        }
+
+        // view edit
+    }
+
     /**
      * Try to get the github repository of this assignment
      *
@@ -95,6 +123,7 @@ class assignment_github extends assignment_base {
         global $USER, $OUTPUT, $PAGE;
 
         $this->init_group();
+        $this->init_permission();
 
         $editmode = optional_param('edit', 0, PARAM_BOOL);
         $this->github_repo = new github_repo($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
@@ -191,12 +220,12 @@ class assignment_github extends assignment_base {
 
             // Group mode and the user is not a member of this group,
             // do not show the edit button
-            if ($this->group->mode && !$this->group->ismember && !$this->capability_grade) {
+            if (!$this->capability['edit']) {
                 return;
             }
 
             $url = $PAGE->url;
-            if ($this->group->mode && $this->group->ismember) {
+            if ($this->group->mode) {
                 $url->param('group', $this->group->id);
             }
             
@@ -222,15 +251,15 @@ class assignment_github extends assignment_base {
      */
     private function save_repo($repoid = null, $github_info) {
 
-        $mode = $this->group->mode;
+        $groupmode = $this->group->mode;
         $members = array();
 
         // Group mode, check permission
-        if ($mode && !$this->group->ismember && !$this->capability_grade) {
+        if (!$this->capability['edit']) {
             return false;
         }
 
-        if (($mode && $this->group->ismember) || $this->capability_grade) {
+        if ($groupmode) {
             foreach($this->group->members as $member) {
                 $element_name = 'member_' . $member->id;
                 $members[$member->id] = $github_info->$element_name;
@@ -240,7 +269,7 @@ class assignment_github extends assignment_base {
         if ($repoid) {
             return $this->github_repo->update_repo($repoid, $github_info->username, $github_info->repo, $members);
         } else {
-            return $this->github_repo->add_repo($github_info->username, $github_info->repo, $members, $mode);
+            return $this->github_repo->add_repo($github_info->username, $github_info->repo, $members, $groupmode);
         }
 
         return false;
@@ -255,14 +284,14 @@ class assignment_github extends assignment_base {
         global $PAGE;
 
         // Group mode, check permission
-        if ($this->group->mode && !$this->group->ismember && (!$this->capability_grade || !$this->group->id)) {
-            return $this->show_repo();
+        if (($this->capability['view'] && !$this->capability['edit']) || !$this->group->id) {
+            return $this->show_repo($repo);
         }
 
-        $PAGE->url->remove_params('edit');
-        $mform = new mod_assignment_github_edit_form($PAGE->url->out(), array('group' => $this->group, 'repo' => $repo));
+        $url = $PAGE->url;
+        $url->remove_params('edit');
+        $mform = new mod_assignment_github_edit_form($url->out(), array('group' => $this->group, 'repo' => $repo));
         $mform->display();
-
     }
 
     private function get_members_by_id($id, $fields = array(), $sort = 'lastname ASC') {
