@@ -88,7 +88,7 @@ class service_github_api {
 
         $git = $this->parse_git_url($url);
         if (!$git) {
-            throw new Exception('Unrecognized url');
+            throw new Exception(get_string('unrecognizedurl', 'assignment_github'));
             return false;
         }
 

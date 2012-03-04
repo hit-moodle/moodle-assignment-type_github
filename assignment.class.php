@@ -134,13 +134,14 @@ class assignment_github extends assignment_base {
 
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
-            $saved = $this->save_repo($repo->id, $github_info);
-            $repo = $this->get_repo();
-
-            if (!$saved) {
-                // TODO: display an error message
-                // $OUTPUT->container_end_all();
-                // return;
+            try {
+                $saved = $this->save_repo($repo->id, $github_info);
+                $repo = $this->get_repo();
+            } catch (Exception $e) {
+                echo html_writer::start_tag('div', array('class' => 'git_error')) .
+                     $OUTPUT->notification($e->getMessage()) .
+                     html_writer::link('javascript:history.go(-1);', get_string('back'), array('class' => 'git_back_link')) .
+                     html_writer::end_tag('div');
             }
         }
 
@@ -272,13 +273,10 @@ class assignment_github extends assignment_base {
             }
         }
 
-        try {
-            if ($repoid) {
-                return $this->git->update_repo($repoid, $github_info->url, $members);
-            } else {
-                return $this->git->add_repo($github_info->url, $members, $groupmode);
-            }
-        } catch (Exception $e) {
+        if ($repoid) {
+            return $this->git->update_repo($repoid, $github_info->url, $members);
+        } else {
+            return $this->git->add_repo($github_info->url, $members, $groupmode);
         }
 
         return false;

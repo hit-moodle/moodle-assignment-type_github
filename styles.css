@@ -4,3 +4,5 @@
 .git_box .generaltable td.c1 {min-width: 100px; text-align: center; font-weight: bold;}
 .git_box .fitemtitle {min-width: 140px;}
 .git_box .felement input {min-width: 240px;}
+.git_error {text-align: center; background-color: #FFF; border: 1px red solid; margin-bottom: 15px;}
+.git_back_link {padding: 5px 20px 10px 20px;}

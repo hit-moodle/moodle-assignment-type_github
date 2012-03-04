@@ -181,20 +181,20 @@ class git {
 
         $server = $this->parse_git_server($url);
         if (!$server) {
-            throw new Exception('Unknow server');
+            throw new Exception(get_string('unknowserver', 'assignment_github'));
             return false;
         }
 
         $service = $this->get_api_service($server);
         if (!$service) {
-            throw new Exception('Service error');
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
             return false;
         }
 
         try {
             $repo = $service->get_repo_info($url);
             if (!$repo) {
-                throw new Exception('Can\'t find this respository on the server');
+                throw new Exception(get_string('reponotfind', 'assignment_github'));
                 return false;
             }
         } catch (Exception $e) {
