@@ -95,7 +95,7 @@ class service_github_api {
         try {
             $result = $this->_client->getRepoApi()->show($git['folder'], $git['repo']);
         } catch(Exception $e) {
-            throw new Exception($e);
+            throw new Exception($e->getMessage());
             return null;
         }
 

@@ -181,7 +181,7 @@ class git {
 
         $server = $this->parse_git_server($url);
         if (!$server) {
-            throw new Exception(get_string('unknowserver', 'assignment_github'));
+            throw new Exception(get_string('unknownserver', 'assignment_github'));
             return false;
         }
 
@@ -198,7 +198,7 @@ class git {
                 return false;
             }
         } catch (Exception $e) {
-            throw new Exception($e);
+            throw new Exception($e->getMessage());
         }
 
         $repo['server'] = $server;
@@ -210,7 +210,7 @@ class git {
         try {
             $repo = $this->fetch_repo_info($url);
         } catch(Exception $e) {
-            throw new Exception($e);
+            throw new Exception($e->getMessage());
             return false;
         }
 
@@ -253,6 +253,7 @@ class git {
         try {
             return $DB->insert_record($this->_table, $data);
         } catch(Exception $e) {
+            throw new Exception($e->getMessage());
             return false;
         }
     }
@@ -262,7 +263,7 @@ class git {
         try {
             $repo = $this->fetch_repo_info($url);
         } catch(Exception $e) {
-            throw new Exception($e);
+            throw new Exception($e->getMessage());
             return false;
         }
 
@@ -296,6 +297,7 @@ class git {
         try {
             return $DB->update_record($this->_table, $data);
         } catch(Exception $e) {
+            throw new Exception($e->getMessage());
             return false;
         }
     }
