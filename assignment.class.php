@@ -312,6 +312,7 @@ class mod_assignment_github_edit_form extends moodleform {
 
         $mform = $this->_form;
         $repo = $this->_customdata['repo'];
+        $group = $this->_customdata['group'];
 
         // visible elements
         $mform->addElement('text', 'url', 'Repository');
@@ -319,7 +320,6 @@ class mod_assignment_github_edit_form extends moodleform {
         $mform->setType('url', PARAM_TEXT);
         $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
-        $group = $this->_customdata['group'];
         if ($group->mode) {
             foreach($group->members as $member) {
                 $element_name = 'member_' . $member->id;
@@ -327,23 +327,17 @@ class mod_assignment_github_edit_form extends moodleform {
                 @$mform->setHelpButton($element_name, array('member', $element_name, 'assignment_github'));
                 $mform->setType($element_name, PARAM_EMAIL);
                 $mform->addRule($element_name, get_string('required'), 'required', null, 'client');
+                if ($repo->members[$member->id]) {
+                    $email = $repo->members[$member->id];
+                } else {
+                    $email = $member->email;
+                }
+                $mform->setDefault($element_name, $email);
             }
         }
 
         if ($repo) {
             $mform->setDefault('url', $repo->url);
-        }
-
-        if ($group->members) {
-            foreach($group->members as $id => $user) {
-                $element_name = 'member_' . $id;
-                if ($repo->members[$id]) {
-                    $email = $repo->members[$id];
-                } else {
-                    $email = $user->email;
-                }
-                $mform->setDefault($element_name, $email);
-            }
         }
 
         // buttons
