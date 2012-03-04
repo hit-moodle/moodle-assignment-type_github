@@ -22,8 +22,10 @@ class assignment_github extends assignment_base {
 
     function view() {
 
+        global $PAGE;
         require_capability('mod/assignment:view', $this->context);
         add_to_log($this->course->id, "assignment", "view", "view.php?id={$this->cm->id}", $this->assignment->id, $this->cm->id);
+        $PAGE->requires->css('/mod/assignment/type/'.$this->type.'/styles.css');
 
         $this->view_header();
 
@@ -127,7 +129,8 @@ class assignment_github extends assignment_base {
         $repo = $this->get_repo();
         
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'));
+        echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
+        echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
 
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
@@ -147,6 +150,7 @@ class assignment_github extends assignment_base {
             $this->show_repo($repo);
         }
         echo $OUTPUT->box_end();
+        echo $OUTPUT->box_end();
     }
 
     /**
@@ -157,7 +161,7 @@ class assignment_github extends assignment_base {
      *               will call get_repo to get the repository's infomation
      */
     private function show_repo($repository = null) {
-        global $USER, $OUTPUT, $PAGE;
+        global $USER, $OUTPUT, $PAGE, $CFG;
 
         if (!$repository) {
             $repository = $this->get_repo();
@@ -166,7 +170,6 @@ class assignment_github extends assignment_base {
         if ($repository) {
             $service = $this->git->get_api_service($repository->server);
 
-            echo $OUTPUT->box_start('generalbox boxaligncenter');
             echo html_writer::tag('h4', get_string('repository', 'assignment_github'));
             $table = new html_table();
 
@@ -189,25 +192,36 @@ class assignment_github extends assignment_base {
             $table->data = array($repository_row);
             echo html_writer::table($table);
 
-            if ($repository->members && $this->capability['edit']) {
+            if ($repository->members && $this->capability['view']) {
                 echo html_writer::tag('h4', get_string('memberlist', 'assignment_github'));
                 $member_table = new html_table();
                 foreach($repository->members as $id => $email) {
                     $member_row = new html_table_row();
-                    $member_cell_header = new html_table_cell();
-                    $member_cell_content = new html_table_cell();
-                    $member_cell_header->header = true;
-                    $member_cell_header->text = fullname($this->group->members[$id]);
-                    $member_cell_content->text = html_writer::link('mailto:' . $email,
-                                                                   $email,
-                                                                   array('target' => '_blank'));
-                    $member_row->cells = array($member_cell_header, $member_cell_content);
+                    $member_cell_picture = new html_table_cell();
+                    $member_cell_name = new html_table_cell();
+                    $member_cell_picture->header = true;
+                    $member_cell_picture->text = $OUTPUT->user_picture($this->group->members[$id]);
+
+                    if ($USER->id != $id) {
+                        $member_cell_name->text = html_writer::link($CFG->wwwroot.'/message/index.php?id='.$id,
+                                                                    fullname($this->group->members[$id]),
+                                                                    array('title' => get_string('messageselectadd')));
+                    } else {
+                        $member_cell_name->text = fullname($this->group->members[$id]);
+                    }
+                    $member_row->cells = array($member_cell_picture, $member_cell_name);
+
+                    if ($this->capability['edit']) {
+                        $member_cell_content = new html_table_cell();
+                        $member_cell_content->text = html_writer::link('mailto:' . $email,
+                                                                       $email,
+                                                                       array('target' => '_blank'));
+                        $member_row->cells[] = $member_cell_content;
+                    }
                     $member_table->data[] = $member_row;
                 }
                 echo html_writer::table($member_table);
             }
-
-            echo $OUTPUT->box_end('generalbox boxaligncenter');
 
             // Group mode and the user is not a member of this group,
             // do not show the edit button
