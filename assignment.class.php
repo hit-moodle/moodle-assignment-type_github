@@ -130,12 +130,14 @@ class assignment_github extends assignment_base {
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'));
 
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group));
-        if ($github_info = $mform->get_submitted_data()) {
+        if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
             $saved = $this->save_repo($repo->id, $github_info);
             $repo = $this->get_repo();
 
             if (!$saved) {
                 // TODO: display an error message
+                // $OUTPUT->container_end_all();
+                // return;
             }
         }
 
@@ -217,8 +219,9 @@ class assignment_github extends assignment_base {
             if ($this->group->mode) {
                 $url->param('group', $this->group->id);
             }
-            
-            echo $OUTPUT->edit_button($url);
+            $url->param('sesskey', sesskey());
+            $url->param('edit', '1');
+            echo $OUTPUT->single_button($url, get_string('turneditingon'));
             return;
         }
 
@@ -255,10 +258,13 @@ class assignment_github extends assignment_base {
             }
         }
 
-        if ($repoid) {
-            return $this->git->update_repo($repoid, $github_info->url, $members);
-        } else {
-            return $this->git->add_repo($github_info->url, $members, $groupmode);
+        try {
+            if ($repoid) {
+                return $this->git->update_repo($repoid, $github_info->url, $members);
+            } else {
+                return $this->git->add_repo($github_info->url, $members, $groupmode);
+            }
+        } catch (Exception $e) {
         }
 
         return false;
@@ -320,6 +326,7 @@ class mod_assignment_github_edit_form extends moodleform {
                 $mform->addElement('text', $element_name, get_string('member', 'assignment_github') . fullname($member));
                 @$mform->setHelpButton($element_name, array('member', $element_name, 'assignment_github'));
                 $mform->setType($element_name, PARAM_EMAIL);
+                $mform->addRule($element_name, get_string('required'), 'required', null, 'client');
             }
         }
 
@@ -340,6 +347,6 @@ class mod_assignment_github_edit_form extends moodleform {
         }
 
         // buttons
-        $this->add_action_buttons(false);
+        $this->add_action_buttons();
     }
 }
