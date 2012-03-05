@@ -198,7 +198,7 @@ class git {
                 return false;
             }
         } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
         }
 
         $repo['server'] = $server;
@@ -253,7 +253,7 @@ class git {
         try {
             return $DB->insert_record($this->_table, $data);
         } catch(Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
             return false;
         }
     }
@@ -297,7 +297,7 @@ class git {
         try {
             return $DB->update_record($this->_table, $data);
         } catch(Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
             return false;
         }
     }
