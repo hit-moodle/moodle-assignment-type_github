@@ -18,4 +18,4 @@ $string['typegithub'] = 'Github Project';
 $string['unknownserver'] = 'Unknown Server. Please check the url.';
 $string['unknowntype'] = 'Unknown type parameter';
 $string['unrecognizedurl'] = 'Unrecognized Url. Please check the url.';
-?>
+

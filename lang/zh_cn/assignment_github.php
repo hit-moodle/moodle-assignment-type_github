@@ -18,4 +18,4 @@ $string['typegithub'] = 'Github项目';
 $string['unknownserver'] = '无法识别的托管服务器。请检查链接是否输入正确。';
 $string['unknowntype'] = '未知的类型参数';
 $string['unrecognizedurl'] = '无法识别的链接。请检查链接是否输入正确。';
-?>
+
