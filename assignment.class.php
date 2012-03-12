@@ -132,7 +132,7 @@ class assignment_github extends assignment_base {
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
         echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
 
-        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group));
+        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
             try {
                 $saved = $this->save_repo($repo->id, $github_info);
@@ -332,7 +332,7 @@ class mod_assignment_github_edit_form extends moodleform {
         $mform->setType('url', PARAM_TEXT);
         $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
-        if ($group->mode) {
+        if ($group->mode && $group->id) {
             foreach($group->members as $member) {
                 $element_name = 'member_' . $member->id;
                 $mform->addElement('text', $element_name, get_string('member', 'assignment_github') . fullname($member));
