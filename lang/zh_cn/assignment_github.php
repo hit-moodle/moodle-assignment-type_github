@@ -1,6 +1,6 @@
 <?
 
-$string['typegithub'] = 'Github作业';
+$string['typegithub'] = 'Github项目';
 $string['unknowntype'] = '未知的类型参数';
 $string['githubreposetting'] = 'Git容器设置';
 $string['repository'] = '容器';

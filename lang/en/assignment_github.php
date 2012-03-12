@@ -1,6 +1,6 @@
 <?php
 
-$string['typegithub'] = 'Github Assignment';
+$string['typegithub'] = 'Github Project';
 $string['unknowntype'] = 'Unknown type parameter';
 $string['githubreposetting'] = 'Git Repo Setting';
 $string['repository'] = 'Repository';
