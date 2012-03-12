@@ -8,6 +8,7 @@ $string['githubreposetting'] = 'Git Repo Setting';
 $string['memberemail'] = '{$a}\'s email';
 $string['memberemail_help'] = 'Email which the member use to commit code into this repository';
 $string['memberlist'] = 'Member List';
+$string['pluginname'] = 'Github Project';
 $string['project'] = 'Project';
 $string['projecthome'] = 'Project Homepage';
 $string['repohasnotset'] = 'This user\'s or group\'s repo has not yet set.';

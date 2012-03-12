@@ -8,6 +8,7 @@ $string['githubreposetting'] = 'Git容器设置';
 $string['memberemail'] = '{$a}的email';
 $string['memberemail_help'] = '此用户在此git容器上提交代码所用的邮箱';
 $string['memberlist'] = '成员列表';
+$string['pluginname'] = 'Github项目';
 $string['project'] = '项目';
 $string['projecthome'] = '项目首页';
 $string['repohasnotset'] = '此用户或分组的容器尚未设置';
