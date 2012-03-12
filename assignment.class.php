@@ -327,16 +327,16 @@ class mod_assignment_github_edit_form extends moodleform {
         $group = $this->_customdata['group'];
 
         // visible elements
-        $mform->addElement('text', 'url', 'Repository');
-        $mform->addHelpButton('url', 'editrepository', 'assignment_github');
+        $mform->addElement('text', 'url', get_string('repositoryrourl', 'assignment_github'));
+        $mform->addHelpButton('url', 'repositoryrourl', 'assignment_github');
         $mform->setType('url', PARAM_TEXT);
         $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
         if ($group->mode && $group->id) {
             foreach($group->members as $member) {
                 $element_name = 'member_' . $member->id;
-                $mform->addElement('text', $element_name, get_string('member', 'assignment_github') . fullname($member));
-                $mform->addHelpButton($element_name, 'member', 'assignment_github');
+                $mform->addElement('text', $element_name, get_string('memberemail', 'assignment_github', fullname($member)));
+                $mform->addHelpButton($element_name, 'memberemail', 'assignment_github');
                 $mform->setType($element_name, PARAM_EMAIL);
                 $mform->addRule($element_name, get_string('required'), 'required', null, 'client');
                 if ($repo && $repo->members[$member->id]) {
