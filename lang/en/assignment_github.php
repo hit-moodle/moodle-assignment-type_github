@@ -1,6 +1,6 @@
 <?php
 
-$string['choosegroup'] = 'Please select a group first.';
+$string['choosegroup'] = 'Please switch to a group first';
 $string['editrepository'] = 'Edit repository';
 $string['editrepository_help'] = 'The repository\'s url. Such as git://github.com/username/repository';
 $string['editusername'] = 'Edit Username or organization';

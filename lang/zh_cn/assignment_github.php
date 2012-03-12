@@ -1,6 +1,6 @@
 <?
 
-$string['choosegroup'] = '请先选择一个分组';
+$string['choosegroup'] = '请先切换到一个小组';
 $string['editrepository'] = '编辑容器';
 $string['editrepository_help'] = '容器的链接 例如：git://github.com/username/repository';
 $string['editusername'] = '编辑Username或organization';
