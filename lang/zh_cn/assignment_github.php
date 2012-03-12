@@ -4,6 +4,7 @@ $string['choosegroup'] = '请先切换到一个小组';
 $string['editrepository'] = '编辑容器';
 $string['editusername'] = '编辑Username或organization';
 $string['editusername_help'] = '容器所有者的Username或organization。';
+$string['emailnotset'] = '邮箱未设置';
 $string['githubreposetting'] = 'Git容器设置';
 $string['memberemail'] = '{$a}的email';
 $string['memberemail_help'] = '此用户在此git容器上提交代码所用的邮箱';

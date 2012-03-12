@@ -4,6 +4,7 @@ $string['choosegroup'] = 'Please switch to a group first';
 $string['editrepository'] = 'Edit repository';
 $string['editusername'] = 'Edit Username or organization';
 $string['editusername_help'] = 'Username or organization of the repository.';
+$string['emailnotset'] = 'Email is not set.';
 $string['githubreposetting'] = 'Git Repo Setting';
 $string['memberemail'] = '{$a}\'s email';
 $string['memberemail_help'] = 'Email which the member use to commit code into this repository';

@@ -275,7 +275,7 @@ class git {
             'members' => json_encode($members),
         );
 
-        return $this->update_record($data, $type);
+        return $this->update_record($data);
     }
 
     private function update_record($data) {

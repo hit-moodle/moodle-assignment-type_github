@@ -135,8 +135,7 @@ class assignment_github extends assignment_base {
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
             try {
-                $saved = $this->save_repo($repo->id, $github_info);
-                $repo = $this->get_repo();
+                $repo = $this->save_repo($repo, $github_info);
             } catch (Exception $e) {
                 echo html_writer::start_tag('div', array('class' => 'git_error')) .
                      $OUTPUT->notification($e->getMessage()) .
@@ -214,9 +213,14 @@ class assignment_github extends assignment_base {
 
                     if ($this->capability['edit']) {
                         $member_cell_content = new html_table_cell();
-                        $member_cell_content->text = html_writer::link('mailto:' . $email,
-                                                                       $email,
-                                                                       array('target' => '_blank'));
+
+                        if ($email) {
+                            $member_cell_content->text = html_writer::link('mailto:' . $email,
+                                                                           $email,
+                                                                           array('target' => '_blank'));
+                        } else {
+                            $member_cell_content->text = get_string('emailnotset', 'assignment_github');
+                        }
                         $member_row->cells[] = $member_cell_content;
                     }
                     $member_table->data[] = $member_row;
@@ -256,8 +260,14 @@ class assignment_github extends assignment_base {
      * @param object $github_info is the data submitted from edit form.
      * @return bool true if successfully saved, else false.
      */
-    private function save_repo($repoid = null, $github_info) {
+    private function save_repo($repo = null, $github_info) {
+        global $USER;
 
+        if ($repo) {
+            $repoid = $repo->id;
+        } else {
+            $repoid = null;
+        }
         $groupmode = $this->group->mode;
         $members = array();
 
@@ -268,18 +278,37 @@ class assignment_github extends assignment_base {
 
         if ($groupmode) {
             foreach($this->group->members as $member) {
-                $element_name = 'member_' . $member->id;
-                $members[$member->id] = $github_info->$element_name;
+                if ($member->id == $USER->id) {
+                    $members[$member->id] = $github_info->email;
+                } else {
+                    $members[$member->id] = $repo->members[$member->id];
+                }
             }
-        }
-
-        if ($repoid) {
-            return $this->git->update_repo($repoid, $github_info->url, $members);
         } else {
-            return $this->git->add_repo($github_info->url, $members, $groupmode);
+            $members[$USER->id] = $github_info->email;
         }
 
-        return false;
+        $result = false;
+        if ($repoid) {
+            $result = $this->git->update_repo($repoid, $github_info->url, $members);
+        } else {
+            $result = $this->git->add_repo($github_info->url, $members, $groupmode);
+        }
+        $repo = $this->get_repo();
+
+        // if update failed or this user is teacher
+        if (!$result || ($groupmode && !$this->group->ismember)) {
+            return $repo;
+        }
+
+        $service =& $this->git->get_api_service($repo->server);
+        $data = new stdClass();
+        $urls = $service->generate_http_from_git($repo->url);
+        $data->url = $urls['repo'];
+        $data->email = $github_info->email;
+        $this->update_submission($USER->id, $data);
+
+        return $repo;
     }
 
     /**
@@ -316,11 +345,48 @@ class assignment_github extends assignment_base {
 
         return groups_get_members($id, $fields, $sort);
     }
+
+    private function update_submission($userid = 0, $data) {
+        global $USER, $DB;
+
+        if (!$userid) {
+            $userid = $USER->id;
+        }
+
+        $submission = $this->get_submission($userid, true);
+
+        $update = new stdClass();
+        $update->id           = $submission->id;
+        $update->data1        = $data->email;
+        $update->data2        = $data->url;
+        $update->timemodified = time();
+
+        $DB->update_record('assignment_submissions', $update);
+
+        $submission = $this->get_submission($userid);
+        $this->update_grade($submission);
+        return $submission;
+    }
+
+    public function print_student_answer($userid, $return=false) {
+        global $OUTPUT;
+        if (!$submission = $this->get_submission($userid)) {
+            return '';
+        }
+
+        $link = html_writer::link($submission->data2, shorten_text($submission->data2), array('target' => '_blank'));
+        $email = $submission->data1;
+        $output = '<div>' .
+                  '<span>' . $link . '</span> <span>' . $email . '</span>' .
+                  '</div>';
+        return $output;
+    }
 }
 
 class mod_assignment_github_edit_form extends moodleform {
 
     function definition() {
+        global $USER;
 
         $mform = $this->_form;
         $repo = $this->_customdata['repo'];
@@ -332,20 +398,19 @@ class mod_assignment_github_edit_form extends moodleform {
         $mform->setType('url', PARAM_TEXT);
         $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
-        if ($group->mode && $group->id) {
-            foreach($group->members as $member) {
-                $element_name = 'member_' . $member->id;
-                $mform->addElement('text', $element_name, get_string('memberemail', 'assignment_github', fullname($member)));
-                $mform->addHelpButton($element_name, 'memberemail', 'assignment_github');
-                $mform->setType($element_name, PARAM_EMAIL);
-                $mform->addRule($element_name, get_string('required'), 'required', null, 'client');
-                if ($repo && $repo->members[$member->id]) {
-                    $email = $repo->members[$member->id];
-                } else {
-                    $email = $member->email;
-                }
-                $mform->setDefault($element_name, $email);
+        // teacher is not allowed to edit students' email
+        if ($group->mode && $group->ismember || !$group->mode) {
+            $mform->addElement('text', 'email', get_string('memberemail', 'assignment_github', fullname($USER)));
+            $mform->addHelpButton('email', 'memberemail', 'assignment_github');
+            $mform->setType('email', PARAM_EMAIL);
+            $mform->addRule('email', get_string('required'), 'required', null, 'client');
+
+            if ($repo && $repo->members[$USER->id]) {
+                $email = $repo->members[$USER->id];
+            } else {
+                $email = $USER->email;
             }
+            $mform->setDefault('email', $email);
         }
 
         if ($repo) {
