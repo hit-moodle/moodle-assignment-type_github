@@ -352,7 +352,7 @@ class mod_assignment_github_edit_form extends moodleform {
             $mform->setDefault('url', $repo->url);
         }
 
-        // buttons
-        $this->add_action_buttons();
+        // Submit button. No cancel
+        $this->add_action_buttons(false);
     }
 }
