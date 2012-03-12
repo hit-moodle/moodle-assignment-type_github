@@ -228,9 +228,7 @@ class assignment_github extends assignment_base {
                 echo html_writer::table($member_table);
             }
 
-            // Group mode and the user is not a member of this group,
-            // do not show the edit button
-            if (!$this->capability['edit']) {
+            if (!$this->capability['edit'] || !$this->isopen()) {
                 return;
             }
 
@@ -258,10 +256,14 @@ class assignment_github extends assignment_base {
      * @param integer $repoid optional, default to null. If it's null, add a new record, else not, update
      *                the record which id is $repoid.
      * @param object $github_info is the data submitted from edit form.
-     * @return bool true if successfully saved, else false.
+     * @return object repository if successfully saved, else false.
      */
     private function save_repo($repo = null, $github_info) {
         global $USER;
+
+        if (!$this->isopen()) {
+            return null;
+        }
 
         if ($repo) {
             $repoid = $repo->id;
@@ -273,7 +275,7 @@ class assignment_github extends assignment_base {
 
         // Group mode, check permission
         if (!$this->capability['edit']) {
-            return false;
+            return null;
         }
 
         if ($groupmode) {
@@ -320,7 +322,7 @@ class assignment_github extends assignment_base {
         global $PAGE;
 
         // Group mode, check permission
-        if (($this->capability['view'] && !$this->capability['edit']) || !$this->group->id) {
+        if (($this->capability['view'] && !$this->capability['edit']) || !$this->group->id || !$this->isopen()) {
             return $this->show_repo($repo);
         }
 
