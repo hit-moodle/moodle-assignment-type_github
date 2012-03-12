@@ -171,19 +171,19 @@ class assignment_github extends assignment_base {
         if ($repository) {
             $service = $this->git->get_api_service($repository->server);
 
-            echo html_writer::tag('h4', get_string('repository', 'assignment_github'));
+            echo html_writer::tag('h4', get_string('project', 'assignment_github'));
             $table = new html_table();
 
             $repository_row = new html_table_row();
             $repository_cell_header = new html_table_cell();
             $repository_cell_content = new html_table_cell();
 
-            $repository_cell_header->text = get_string('repositoryname', 'assignment_github');
+            $repository_cell_header->text = get_string('projecthome', 'assignment_github');
             $repository_cell_header->header = true;
 
             $links = $service->generate_http_from_git($repository->url);
             $repo_link = html_writer::link($links['repo'],
-                                           $repository->repo,
+                                           $links['repo'],
                                            array('target' => '_blank'));
 
             $repository_cell_content->text = $repo_link;
