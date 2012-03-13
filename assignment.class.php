@@ -33,9 +33,9 @@ class assignment_github extends assignment_base {
 
         $this->view_repos();
 
-        $this->view_feedback();
-
         $this->view_dates();
+
+        $this->view_feedback();
 
         $this->view_footer();
     }
@@ -372,6 +372,7 @@ class assignment_github extends assignment_base {
 
     public function print_student_answer($userid, $return=false) {
         global $OUTPUT;
+
         if (!$submission = $this->get_submission($userid)) {
             return '';
         }
@@ -382,6 +383,48 @@ class assignment_github extends assignment_base {
                   '<span>' . $link . '</span> <span>' . $email . '</span>' .
                   '</div>';
         return $output;
+    }
+
+    function print_user_files($userid, $return=false) {
+        if ($return) {
+            return $this->print_student_answer($userid);
+        } else {
+            echo $this->print_student_answer($userid);
+        }
+    }
+
+    /**
+     * Display the assignment dates
+     */
+    function view_dates() {
+        global $DB, $OUTPUT;
+        if (!$this->assignment->timeavailable && !$this->assignment->timedue) {
+            return;
+        }
+
+        echo $OUTPUT->box_start('generalbox boxaligncenter', 'dates');
+        echo '<table>';
+        if ($this->assignment->timeavailable) {
+            echo '<tr><td class="c0">'.get_string('availabledate','assignment').':</td>';
+            echo '    <td class="c1">'.userdate($this->assignment->timeavailable).'</td></tr>';
+        }
+        if ($this->assignment->timedue) {
+            echo '<tr><td class="c0">'.get_string('duedate','assignment').':</td>';
+            echo '    <td class="c1">'.userdate($this->assignment->timedue).'</td></tr>';
+        }
+        if ($repo = $this->get_repo()) {
+            if ($repo->updated_user && $repo->updated) {
+                $user = $DB->get_record('user', array('id'=>$repo->updated_user));
+                $lastmodified = $repo->updated;
+            } else {
+                $user = $DB->get_record('user', array('id'=>$repo->created_user));
+                $lastmodified = $repo->created;
+            }
+            echo '<tr><td class="c0">'.get_string('lastedited').':</td>';
+            echo '    <td class="c1">'.userdate($lastmodified).' '.fullname($user);
+        }
+        echo '</table>';
+        echo $OUTPUT->box_end();
     }
 }
 
