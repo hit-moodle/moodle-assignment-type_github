@@ -394,8 +394,16 @@ class assignment_github extends assignment_base {
             return '';
         }
 
-        $link = html_writer::link($submission->data2, shorten_text($submission->data2), array('target' => '_blank'));
+        if (!$this->git) {
+            $this->git = new git($this->course->id, $this->assignment->id);
+        }
+
         $email = $submission->data1;
+        $url = $submission->data2;
+        $service =& $this->git->get_api_service_by_url($url);
+        $info = $service->parse_git_url($url);
+
+        $link = html_writer::link($url, $info['repo'], array('target' => '_blank'));
         $output = '<div>' .
                   '<span>' . $link . '</span> <span>' . $email . '</span>' .
                   '</div>';

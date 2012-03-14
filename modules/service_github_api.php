@@ -8,12 +8,14 @@ class service_github_api {
                           'http' => '/^https:\/\/([\w\d\-_]+)@([^\/]+)\/([\w\d\-_]+)\/([\w\d\-_\.]+)\.git$/i',
                           'ssh' => '/^git@([^:]+):([\w\d\-_]+)\/([\w\d\-_\.]+)\.git$/i',
                           'git' => '/^git:\/\/([^\/]+)\/([\w\d\-_]+)\/([\w\d\-_\.]+)\.git$/i',
+                          'web' => '/^https:\/\/([^\/]+)\/([\w\d\-_]+)\/([\w\d\-_]+)$/i',
                          );
 
     private $_rule = array(
                            'http' => 'https://{user}@{server}/{folder}/{repo}.git',
                            'ssh' => 'git@{server}:{folder}/{repo}.git',
                            'git' => 'git://{server}:{folder}/{repo}.git',
+                           'web' => 'https://{server}/{folder}/{repo}',
                           );
 
     private $_client;

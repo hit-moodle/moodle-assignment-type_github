@@ -31,7 +31,7 @@ class git {
      * @param integer $user
      * @param integer $group
      */
-    public function __construct($course, $assignment, $user, $group = 0) {
+    public function __construct($course, $assignment, $user = 0, $group = 0) {
         global $CFG;
 
         $this->_course = $course;
