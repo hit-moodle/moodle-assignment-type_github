@@ -6,6 +6,7 @@ $string['editusername'] = '编辑Username或organization';
 $string['editusername_help'] = '容器所有者的Username或organization。';
 $string['emailnotset'] = '邮箱未设置';
 $string['githubreposetting'] = 'Git容器设置';
+$string['githubreposettinglist'] = 'Git容器列表';
 $string['memberemail'] = '{$a}的email';
 $string['memberemail_help'] = '此用户在此git容器上提交代码所用的邮箱';
 $string['memberlist'] = '成员列表';

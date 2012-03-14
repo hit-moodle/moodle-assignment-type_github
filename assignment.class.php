@@ -119,6 +119,16 @@ class assignment_github extends assignment_base {
         }
     }
 
+    function list_all() {
+        global $USER;
+
+        if (!$this->git) {
+            $this->git = new git($this->course->id, $this->assignment->id, $USER->id, $this->group->id);
+        }
+
+        return $this->git->list_all($this->group->mode);
+    }
+
     private function view_repos() {
         global $USER, $OUTPUT, $PAGE;
 

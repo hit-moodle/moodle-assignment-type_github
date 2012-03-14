@@ -6,6 +6,7 @@ $string['editusername'] = 'Edit Username or organization';
 $string['editusername_help'] = 'Username or organization of the repository.';
 $string['emailnotset'] = 'Email is not set.';
 $string['githubreposetting'] = 'Git Repo Setting';
+$string['githubreposettinglist'] = 'Git Repo List';
 $string['memberemail'] = '{$a}\'s email';
 $string['memberemail_help'] = 'Email which the member use to commit code into this repository';
 $string['memberlist'] = 'Member List';

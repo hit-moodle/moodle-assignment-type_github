@@ -140,6 +140,43 @@ class git {
     }
 
     /**
+     * List all repos of an assignment
+     *
+     * @param integer $mode is group mode
+     * @return array|false
+     */
+    public function list_all($mode) {
+
+        $conditions = array(
+            'course' => $this->_course,
+            'assignment' => $this->_assignment,
+        );
+
+        if ($mode == SEPARATEGROUPS || $mode == VISIBLEGROUPS) {
+            $conditions['userid'] = 0;
+            $key = 'groupid';
+        } else if ($mode == NOGROUPS) {
+            $conditions['groupid'] = 0;
+            $key = 'userid';
+        } else {
+            throw new Exception(get_string('unknowntype', 'assignment_github'));
+            return false;
+        }
+
+        $result = $this->get_records($conditions);
+        if (!$result || !is_array($result)) {
+            return false;
+        }
+
+        $repos = array();
+        foreach($result as $v) {
+            $repos[$v->$key] = $v;
+        }
+
+        return $repos;
+    }
+
+    /**
      * Get git repository records from database
      *
      * @param array $conditions
