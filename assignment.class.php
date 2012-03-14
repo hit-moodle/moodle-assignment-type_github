@@ -79,12 +79,16 @@ class assignment_github extends assignment_base {
             $this->capability['edit'] = true;
             $this->capability['grade'] = true;
             return;
+        } else {
+            $this->capability['grade'] = false;
         }
 
         if ($this->group->mode == VISIBLEGROUPS) {
             $this->capability['view'] = true;
             if ($this->group->ismember) {
                 $this->capability['edit'] = true;
+            } else {
+                $this->capability['edit'] = false;
             }
             return;
         }
@@ -93,6 +97,9 @@ class assignment_github extends assignment_base {
             if ($this->group->ismember) {
                 $this->capability['view'] = true;
                 $this->capability['edit'] = true;
+            } else {
+                $this->capability['view'] = false;
+                $this->capability['edit'] = false;
             }
             return;
         }
