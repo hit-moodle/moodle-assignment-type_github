@@ -6,3 +6,5 @@
 .git_box .felement input {min-width: 240px;}
 .git_error {text-align: center; background-color: #FFF; border: 1px red solid; margin-bottom: 15px;}
 .git_back_link {padding: 5px 20px 10px 20px;}
+.git_checklink {margin: 5px 0 5px 0;}
+.git_right {text-align: right; margin: 5px 20px 5px 0;}

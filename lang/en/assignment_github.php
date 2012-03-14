@@ -14,6 +14,7 @@ $string['pluginname'] = 'Github Project';
 $string['project'] = 'Project';
 $string['projecthome'] = 'Project Homepage';
 $string['repohasnotset'] = 'This user\'s or group\'s repo has not yet set.';
+$string['repohasset'] = '{$a} repo has set.';
 $string['reponotfind'] = 'Respository not found on the server. Please check the url.';
 $string['repository'] = 'Repository';
 $string['repositoryname'] = 'Repository Name';
@@ -24,4 +25,5 @@ $string['typegithub'] = 'Github Project';
 $string['unknownserver'] = 'Unknown Server. Please check the url.';
 $string['unknowntype'] = 'Unknown type parameter';
 $string['unrecognizedurl'] = 'Unrecognized Url. Please check the url.';
+$string['viewrepolist'] = 'View Git Repo List';
 

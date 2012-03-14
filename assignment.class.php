@@ -18,6 +18,9 @@ class assignment_github extends assignment_base {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'github';
         $this->group = new stdClass();
+
+        $this->init_group();
+        $this->init_permission();
     }
 
     function view() {
@@ -38,6 +41,16 @@ class assignment_github extends assignment_base {
         $this->view_feedback();
 
         $this->view_footer();
+    }
+
+    function view_header() {
+
+        parent::view_header();
+
+        $url = new moodle_url("/mod/assignment/type/github/list.php?id={$this->cm->id}");
+        $link = html_writer::link($url, get_string('viewrepolist', 'assignment_github'));
+        echo '<div class="git_checklink reportlink">'.$link.'</div>';
+        echo '<div class="clearer"></div>';
     }
 
     /**
@@ -70,10 +83,6 @@ class assignment_github extends assignment_base {
 
     private function init_permission() {
 
-        if (!$this->group) {
-            $this->init_group();
-        }
-    
         if (has_capability('mod/assignment:grade', $this->context)) {
             $this->capability['view'] = true;
             $this->capability['edit'] = true;
@@ -138,9 +147,6 @@ class assignment_github extends assignment_base {
 
     private function view_repos() {
         global $USER, $OUTPUT, $PAGE;
-
-        $this->init_group();
-        $this->init_permission();
 
         $editmode = optional_param('edit', 0, PARAM_BOOL);
         $repo = $this->get_repo();
