@@ -17,10 +17,12 @@ class assignment_github extends assignment_base {
     function assignment_github($cmid='staticonly', $assignment=NULL, $cm=NULL, $course=NULL) {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'github';
-        $this->group = new stdClass();
 
-        $this->init_group();
-        $this->init_permission();
+        if ($cmid != 'staticonly') {
+            $this->group = new stdClass();
+            $this->init_group();
+            $this->init_permission();
+        }
     }
 
     function view() {
