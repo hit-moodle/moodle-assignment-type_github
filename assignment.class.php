@@ -157,7 +157,7 @@ class assignment_github extends assignment_base {
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
         echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
 
-        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null));
+        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null, 'submission' => null));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
             try {
                 $repo = $this->save_repo($repo, $github_info);
@@ -217,27 +217,35 @@ class assignment_github extends assignment_base {
             $table->data = array($repository_row);
             echo html_writer::table($table);
 
-            if ($repository->members && $this->capability['view']) {
+            if (!empty($this->group->members) && $this->capability['view']) {
                 echo html_writer::tag('h4', get_string('memberlist', 'assignment_github'));
                 $member_table = new html_table();
-                foreach($repository->members as $id => $email) {
+                foreach($this->group->members as $id => $member) {
                     $member_row = new html_table_row();
                     $member_cell_picture = new html_table_cell();
                     $member_cell_name = new html_table_cell();
                     $member_cell_picture->header = true;
-                    $member_cell_picture->text = $OUTPUT->user_picture($this->group->members[$id]);
+                    $member_cell_picture->text = $OUTPUT->user_picture($member);
 
                     if ($USER->id != $id) {
                         $member_cell_name->text = html_writer::link($CFG->wwwroot.'/message/index.php?id='.$id,
-                                                                    fullname($this->group->members[$id]),
+                                                                    fullname($member),
                                                                     array('title' => get_string('messageselectadd')));
                     } else {
-                        $member_cell_name->text = fullname($this->group->members[$id]);
+                        $member_cell_name->text = fullname($member);
                     }
                     $member_row->cells = array($member_cell_picture, $member_cell_name);
 
                     if ($this->capability['edit']) {
                         $member_cell_content = new html_table_cell();
+
+                        // get email from submission
+                        $submission = $this->get_submission($id);
+                        if (!empty($submission)) {
+                            $email = $submission->data1;
+                        } else {
+                            $email = null;
+                        }
 
                         if ($email) {
                             $member_cell_content->text = html_writer::link('mailto:' . $email,
@@ -303,18 +311,6 @@ class assignment_github extends assignment_base {
             return null;
         }
 
-        if ($groupmode) {
-            foreach($this->group->members as $member) {
-                if ($member->id == $USER->id) {
-                    $members[$member->id] = $github_info->email;
-                } else {
-                    $members[$member->id] = $repo->members[$member->id];
-                }
-            }
-        } else {
-            $members[$USER->id] = $github_info->email;
-        }
-
         $result = false;
         if ($repoid) {
             $result = $this->git->update_repo($repoid, $github_info->url, $members);
@@ -331,7 +327,6 @@ class assignment_github extends assignment_base {
         $service =& $this->git->get_api_service($repo->server);
         $data = new stdClass();
         $urls = $service->generate_http_from_git($repo->url);
-        $data->url = $urls['repo'];
         $data->email = $github_info->email;
         $this->update_submission($USER->id, $data);
 
@@ -344,7 +339,7 @@ class assignment_github extends assignment_base {
      * @param object $repo optional, if it's not null, repo's infomation will be filled in the form
      */
     private function edit_form($repo = null) {
-        global $PAGE;
+        global $PAGE, $USER;
 
         // Group mode, check permission
         if (($this->capability['view'] && !$this->capability['edit']) || !$this->group->id || !$this->isopen()) {
@@ -353,7 +348,9 @@ class assignment_github extends assignment_base {
 
         $url = $PAGE->url;
         $url->remove_params('edit');
-        $mform = new mod_assignment_github_edit_form($url->out(), array('group' => $this->group, 'repo' => $repo));
+
+        $submission = $this->get_submission($USER->id);
+        $mform = new mod_assignment_github_edit_form($url->out(), array('group' => $this->group, 'repo' => $repo, 'submission' => $submission));
         $mform->display();
     }
 
@@ -385,7 +382,6 @@ class assignment_github extends assignment_base {
         $update = new stdClass();
         $update->id           = $submission->id;
         $update->data1        = $data->email;
-        $update->data2        = $data->url;
         $update->timemodified = time();
 
         $DB->update_record('assignment_submissions', $update);
@@ -407,14 +403,31 @@ class assignment_github extends assignment_base {
         }
 
         $email = $submission->data1;
-        $url = $submission->data2;
-        $service =& $this->git->get_api_service_by_url($url);
-        $info = $service->parse_git_url($url);
+        $output = '<div>';
+        if ($this->group->mode) {
 
-        $link = html_writer::link($url, $info['repo'], array('target' => '_blank'));
-        $output = '<div>' .
-                  '<span>' . $link . '</span> <span>' . $email . '</span>' .
-                  '</div>';
+            // user may in more than one groups. show all repos of these groups.
+            $groups = groups_get_all_groups($this->cm->course, $userid, $this->cm->groupingid);
+            foreach($groups as $id => $group) {
+                $repo = $this->git->get_by_group($id);
+                if (!empty($repo)) {
+                    $service =& $this->git->get_api_service($repo->server);
+                    $url = $service->generate_http_from_git($repo->url);
+                    $link = html_writer::link($url['repo'], $repo->repo, array('target' => '_blank'));
+                    $output .= '<span>'.$link.'</span><br/>';
+                }
+            }
+        } else {
+            $repo = $this->git->get_by_user($userid);
+            if (!empty($repo)) {
+                $service =& $this->git->get_api_service($repo->server);
+                $url = $service->generate_http_from_git($repo->url);
+                $link = html_writer::link($url['repo'], $repo->repo, array('target' => '_blank'));
+                $output .= '<span>'.$link.'</span><br/>';
+            }
+        }
+
+        $output .= '<span>' . $email . '</span></div>';
         return $output;
     }
 
@@ -469,6 +482,7 @@ class mod_assignment_github_edit_form extends moodleform {
         $mform = $this->_form;
         $repo = $this->_customdata['repo'];
         $group = $this->_customdata['group'];
+        $submission = $this->_customdata['submission'];
 
         // visible elements
         $mform->addElement('text', 'url', get_string('repositoryrourl', 'assignment_github'));
@@ -483,8 +497,8 @@ class mod_assignment_github_edit_form extends moodleform {
             $mform->setType('email', PARAM_EMAIL);
             $mform->addRule('email', get_string('required'), 'required', null, 'client');
 
-            if ($repo && $repo->members[$USER->id]) {
-                $email = $repo->members[$USER->id];
+            if ($submission && $submission->data1) {
+                $email = $submission->data1;
             } else {
                 $email = $USER->email;
             }

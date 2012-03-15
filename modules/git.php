@@ -53,8 +53,8 @@ class git {
         }
 
         // cut protocol: http, git, ssh ...
-        $url_no_protocal = preg_replace('/https?:\/\/([^@]+@)?|git@([^:]+):|git:\/\/|ssh:\/\//i', '', $url);
-        $param_list = explode('/', $url_no_protocal);
+        $url_no_protocal = preg_replace('/https?:\/\/([^@]+@)?|https?:\/\/|git@|git:\/\/|ssh:\/\//i', '', $url);
+        $param_list = preg_split('/[\/:]/', $url_no_protocal);
         $site = $param_list[0];
         foreach($this->_server as $domain => $server) {
             if (preg_match('/'.$domain.'$/i', $site)) {
