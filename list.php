@@ -49,6 +49,8 @@ $repo_count = count($repos);
 $table = new html_table();
 if ($groupmode) {
     $groups = groups_get_all_groups($cm->course, 0, $cm->groupingid);
+    $group_names = array();
+    $rows = array();
     foreach($groups as $group) {
         $row = new html_table_row();
         $c1 = new html_table_cell();
@@ -60,7 +62,7 @@ if ($groupmode) {
         } else {
             $c1->text = $group->name;
         }
-
+        $group_names[$group->id] = $group->name;
         if (array_key_exists($group->id, $repos)) {
             $repo = $repos[$group->id];
             $service =& $git->get_api_service($repo->server);
@@ -70,7 +72,13 @@ if ($groupmode) {
             $c2->text = get_string('repohasnotset', 'assignment_github');
         }
         $row->cells = array($c1, $c2);
-        $table->data[] = $row;
+        $rows[$group->id] = $row;
+    }
+    natsort($group_names);
+    foreach($group_names as $group_id => $group_name) {
+        if (array_key_exists($group_id, $rows)) {
+            $table->data[] = $rows[$group_id];
+        }
     }
     $total = count($groups);
 } else {
