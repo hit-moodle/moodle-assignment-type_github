@@ -19,6 +19,11 @@ class git_command {
         $this->workspace = $workspace;
     }
 
+    function get_workspace() {
+
+        return $this->workspace;
+    }
+
     function prepare_params() {
 
         $param = new stdClass();
@@ -60,6 +65,7 @@ class git_command {
     private function git_pull($param) {
 
         if (!is_dir("$param->work_tree")) {
+            clearstatcache();
             return false;
         }
 
@@ -71,6 +77,7 @@ class git_command {
     private function git_log($param) {
 
         if (!is_dir("$param->work_tree")) {
+            clearstatcache();
             return false;
         }
 
