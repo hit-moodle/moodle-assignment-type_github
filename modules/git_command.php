@@ -59,7 +59,7 @@ class git_command {
         }
 
         $command = 'git clone '.$param->git.' '.$param->target_dir;
-        return shell_exec($command);
+        return system($command);
     }
 
     private function git_pull($param) {
@@ -71,7 +71,7 @@ class git_command {
 
         chdir("$param->work_tree");
         $command = 'git pull';
-        return shell_exec($command);
+        return system($command);
     }
 
     private function git_log($param) {
