@@ -29,7 +29,6 @@ class git_command {
         $param = new stdClass();
         $param->work_tree = '';
         $param->git = '';
-        $param->target_dir = '';
         $param->other = array();
         return $param;
     }
@@ -54,11 +53,11 @@ class git_command {
 
     private function git_clone($param) {
 
-        if (!$param->git || !$param->target_dir) {
+        if (!$param->git || !$param->work_tree) {
             return false;
         }
 
-        $command = 'git clone '.$param->git.' '.$param->target_dir;
+        $command = 'git clone '.$param->git.' '.$param->work_tree;
         return system($command);
     }
 
