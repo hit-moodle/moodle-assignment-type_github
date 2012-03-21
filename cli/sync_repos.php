@@ -76,7 +76,7 @@ class sync_git_repos {
             $work_tree = $this->generate_work_tree($id);
             $this->_analyzer->set_work_tree($work_tree);
 
-            if ($this->_analyzer->has_work_tree($work_tree)) {
+            if ($this->_analyzer->has_work_tree()) {
                 $this->_analyzer->pull();
             } else {
 

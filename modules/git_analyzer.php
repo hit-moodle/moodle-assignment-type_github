@@ -15,21 +15,15 @@ class git_analyzer {
 
     function set_work_tree($work_tree) {
 
-        $dir = getcwd();
-        chdir("$this->workspace");
-        if (is_dir("$work_tree")) {
-            $this->work_tree = $work_tree;
-        }
-        clearstatcache(true, "$work_tree");
-        chdir("$dir");
+        $this->work_tree = $work_tree;
     }
 
-    function has_work_tree($work_tree) {
+    function has_work_tree() {
 
         $dir = getcwd();
         chdir("$this->workspace");
-        $result = is_dir("$work_tree");
-        clearstatcache(true, "$work_tree");
+        $result = is_dir("$this->work_tree");
+        clearstatcache(true, "$this->work_tree");
         chdir("$dir");
         return $result;
     }
