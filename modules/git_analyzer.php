@@ -34,14 +34,14 @@ class git_analyzer {
         $params->other = array(
             '--shortstat',
             '--no-merges',
-            '--pretty=format:"[C:%H][A:%an][E:%ae][D:%at][%s]%n"',
+            '--pretty=format:"[C:%H][A:%an]%n[E:%ae][D:%at][%s]%n"',
         );
 
         $response = $this->cmd->exec('log', $params);
         if (!$response) {
             return null;
         }
-        preg_match_all('/\[C:([^\]]+)\]\[A:([^\]]+)\]\[E:([^\]]+)\]\[D:([^\]]+)\]\[([^\n]*)\]\n'.
+        preg_match_all('/\[C:([^\]]+)\]\[A:([^\n]+)\]\n\[E:([^\]]+)\]\[D:([^\]]+)\]\[([^\n]*)\]\n'.
                        '\s*(\d+) files changed, (\d+) insertions\(\+\), (\d+) deletions\(-\)/i',
                        $response, $matches, PREG_SET_ORDER);
         if (!$matches) {
