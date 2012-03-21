@@ -20,14 +20,36 @@ class git_analyzer {
         if (is_dir("$work_tree")) {
             $this->work_tree = $work_tree;
         }
+        clearstatcache(true, "$work_tree");
         chdir("$dir");
     }
 
-    function get_log() {
+    function has_work_tree($work_tree) {
 
-        if (empty($this->work_tree)) {
-            return null;
+        $dir = getcwd();
+        chdir("$this->workspace");
+        $result = is_dir("$work_tree");
+        clearstatcache(true, "$work_tree");
+        chdir("$dir");
+        return $result;
+    }
+
+    function pull($create = false, $git = null, $work_tree = null) {
+
+        $params = $this->cmd->prepare_params();
+        $params->git = $git;
+        if ($create) {
+            $command = 'clone';
+            $params->work_tree = $work_tree;
+        } else {
+            $command = 'pull';
+            $params->work_tree = $this->work_tree;
         }
+
+        return $this->cmd->exec($command, $params);
+    }
+
+    function get_log() {
 
         $params = $this->cmd->prepare_params();
         $params->work_tree = $this->work_tree;
