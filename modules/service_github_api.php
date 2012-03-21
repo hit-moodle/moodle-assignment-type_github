@@ -14,7 +14,7 @@ class service_github_api {
     private $_rule = array(
                            'http' => 'https://{user}@{server}/{folder}/{repo}.git',
                            'ssh' => 'git@{server}:{folder}/{repo}.git',
-                           'git' => 'git://{server}:{folder}/{repo}.git',
+                           'git' => 'git://{server}/{folder}/{repo}.git',
                            'web' => 'https://{server}/{folder}/{repo}',
                           );
 
@@ -58,9 +58,13 @@ class service_github_api {
         return $git;
     }
 
-    public function generate_git_url($git) {
+    public function generate_git_url($git, $type = '') {
 
-        $rule = $this->_rule[$git['type']];
+        if ($type && array_key_exists($type, $this->_rule)) {
+            $rule = $this->_rule[$type];
+        } else {
+            $rule = $this->_rule[$git['type']];
+        }
         unset($git['type']);
         foreach($git as $k => $v) {
             $rule = str_replace('{'.$k.'}', $v, $rule);
