@@ -43,15 +43,16 @@ class git_analyzer {
         return $this->cmd->exec($command, $params);
     }
 
-    function get_log() {
+    function get_log($custom_params = array()) {
 
         $params = $this->cmd->prepare_params();
         $params->work_tree = $this->work_tree;
-        $params->other = array(
+        $default_params = array(
             '--shortstat',
             '--no-merges',
             '--pretty=format:"[C:%H][A:%an]%n[E:%ae][D:%at][%s]%n"',
         );
+        $params->other = array_merge($default_params, $custom_params);
 
         $response = $this->cmd->exec('log', $params);
         if (!$response) {
@@ -80,12 +81,18 @@ class git_analyzer {
         return $logs;
     }
 
-    function get_log_by_range() {
+    function get_log_by_range($since = '', $until = '') {
+
+        $params = array();
+        if ($since) {
+            $params[] = "--since={$since}";
+        }
+        if ($until) {
+            $params[] = "--until={$until}";
+        }
+        return $this->get_log($params);
     }
 
-    function get_log_by_commit() {
-    }
-
-    function get_detail_by_commit() {
+    function show_commit() {
     }
 }

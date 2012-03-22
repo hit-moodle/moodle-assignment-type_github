@@ -88,4 +88,20 @@ class git_command {
 
         return shell_exec($command);
     }
+
+    private function git_show($param) {
+
+        if (!is_dir("$param->work_tree")) {
+            clearstatcache();
+            return false;
+        }
+
+        chdir("$param->work_tree");
+        $command = 'git show';
+        foreach($param->other as $p) {
+            $command .= ' '.$p;
+        }
+
+        return shell_exec($command);
+    }
 }
