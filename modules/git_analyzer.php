@@ -28,16 +28,15 @@ class git_analyzer {
         return $result;
     }
 
-    function pull($create = false, $git = null, $work_tree = null) {
+    function pull($git = null) {
 
         $params = $this->cmd->prepare_params();
-        $params->git = $git;
-        if ($create) {
+        $params->work_tree = $this->work_tree;
+        if (!empty($git)) {
             $command = 'clone';
-            $params->work_tree = $work_tree;
+            $params->git = $git;
         } else {
             $command = 'pull';
-            $params->work_tree = $this->work_tree;
         }
 
         return $this->cmd->exec($command, $params);

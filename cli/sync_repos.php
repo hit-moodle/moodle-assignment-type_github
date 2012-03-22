@@ -88,7 +88,7 @@ class sync_git_repos {
                 } else {
                     $url = $service->generate_git_url($git, 'git');
                 }
-                $this->_analyzer->pull(true, $url, $work_tree);
+                $this->_analyzer->pull($url);
             }
 
             $logs = $this->_analyzer->get_log();
