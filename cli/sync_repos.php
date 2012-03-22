@@ -36,9 +36,9 @@ class sync_git_repos {
 
     private $_analyzer;
 
-    private $_submissions;
+    private $_logger;
 
-    private $_members;
+    private $_submissions;
 
     public function __construct($cmid) {
         global $DB;
@@ -67,6 +67,7 @@ class sync_git_repos {
         $this->_groupmode = groups_get_activity_groupmode($cm);
         $this->_git = new git($course->id, $assignment->id);
         $this->_analyzer = new git_analyzer();
+        $this->_logger = new git_logger($assignment->id);
     }
 
     public function sync() {
@@ -92,7 +93,7 @@ class sync_git_repos {
             }
 
             $logs = $this->_analyzer->get_log();
-            // todo: construct the table first, then fill logs in it
+            $this->store_logs($id, $repo, $logs);
         }
     }
 
@@ -124,14 +125,6 @@ class sync_git_repos {
         return $this->_assignmentinstance->list_all();
     }
 
-    private function get_group_members($groupid) {
-
-        $members = groups_get_members($groupid, 'u.*', 'lastname ASC');
-        foreach($members as $id => $member) {
-            $members[$id]->git_email = $this->get_user_email($id);
-        }
-    }
-
     private function get_user_email($userid) {
 
         if (empty($this->_submissions)) {
@@ -145,6 +138,35 @@ class sync_git_repos {
         return $this->_submissions[$userid]->data1;
     }
 
-    private function store_logs() {
+    private function store_logs($id, $repo, $logs) {
+
+        $assignment = $this->_assignmentinstance->assignment->id;
+        if ($this->_groupmode) {
+            $members = groups_get_members($id, 'u.*', 'lastname ASC');
+            $emails = array();
+            foreach($members as $userid => $member) {
+                $emails[$this->get_user_email($userid)] = $userid;
+            }
+            $old_logs = $this->_logger->get_by_group($id);
+        } else {
+            $old_logs = $this->_logger->get_by_user($id);
+        }
+
+        $logs = array_diff_key($logs, $old_logs);
+        foreach($logs as $log) {
+            $log->assignment = $assignment;
+            if ($this->_groupmode) {
+                if (empty($emails[$log->email])) {
+                    $log->userid = 0;
+                } else {
+                    $log->userid = $emails[$log->email];
+                }
+                $log->groupid = $id;
+            } else {
+                $log->userid = $id;
+                $log->groupid = 0;
+            }
+            $this->_logger->add_record($log);
+        }
     }
 }

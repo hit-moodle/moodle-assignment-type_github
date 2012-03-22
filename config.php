@@ -8,5 +8,6 @@ require_once(ASSIGNMENT_GITHUB_LIB.'Autoloader.php');
 require_once(ASSIGNMENT_GITHUB_MODULES.'git.php');
 require_once(ASSIGNMENT_GITHUB_MODULES.'git_command.php');
 require_once(ASSIGNMENT_GITHUB_MODULES.'git_analyzer.php');
+require_once(ASSIGNMENT_GITHUB_MODULES.'git_logger.php');
 
 Github_Autoloader::register();
