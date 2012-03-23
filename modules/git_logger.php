@@ -79,7 +79,6 @@ class git_logger {
                 WHERE `assignment`={$this->assignment} AND `userid`={$userid}
                   AND `groupid`=0
                 GROUP BY `userid`";
-        echo $sql . PHP_EOL;
         return $DB->get_records_sql($sql);
     }
 
