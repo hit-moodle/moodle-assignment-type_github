@@ -196,7 +196,7 @@ class git {
         }
 
         try {
-            $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom=0, $limitnum=0);
+            $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom, $limitnum);
             if ($result) {
                 foreach($result as $k => $v) {
                     $result[$k] = $this->convert_record($v);

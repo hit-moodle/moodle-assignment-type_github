@@ -27,7 +27,7 @@ class git_logger {
         $conditions = array();
         $conditions['userid'] = $id;
         $conditions['groupid'] = 0;
-        return $this->get_records($conditions);
+        return $this->get_records($conditions, $sort='date DESC', null, $limitfrom, $limitnum);
     }
 
     function get_by_group_user($groupid, $userid, $since = '', $until = '', $limitfrom = 0, $limitnum = 0) {
@@ -37,7 +37,7 @@ class git_logger {
             $conditions['userid'] = $userid;
         }
         $conditions['groupid'] = $groupid;
-        return $this->get_records($conditions);
+        return $this->get_records($conditions, $sort='date DESC', null, $limitfrom, $limitnum);
     }
 
     function get_statistics_by_group($groupid) {
@@ -136,7 +136,7 @@ class git_logger {
 
         try {
             $logs = array();
-            $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom=0, $limitnum=0);
+            $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom, $limitnum);
             if ($result) {
                 foreach($result as $k => $v) {
                     $logs[$v->commit] = $v;
