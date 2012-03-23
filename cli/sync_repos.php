@@ -22,7 +22,7 @@ try {
     $task = new sync_git_repos($cmid);
     $task->sync();
 } catch (Exception $e) {
-    echo $e->getMessage() . PHP_EOL;
+    fwrite(STDERR, $e->getMessage());
     die;
 }
 
@@ -72,10 +72,12 @@ class sync_git_repos {
 
     public function sync() {
 
+        $this->show_message('Start sync repos');
         $repos = $this->list_all_repos();
         foreach($repos as $id => $repo) {
             $work_tree = $this->generate_work_tree($id);
             $this->_analyzer->set_work_tree($work_tree);
+            $this->show_message("Current work tree: [{$work_tree}] updating...");
 
             if ($this->_analyzer->has_work_tree()) {
                 $this->_analyzer->pull();
@@ -93,8 +95,14 @@ class sync_git_repos {
             }
 
             $logs = $this->_analyzer->get_log();
-            $this->store_logs($id, $repo, $logs);
+            if ($logs) {
+                $this->show_message('Analyzing...');
+                $this->store_logs($id, $repo, $logs);
+            } else {
+                $this->show_error("Failed to get log of work tree: [{$work_tree}] repo: [{$repo->url}]");
+            }
         }
+        $this->show_message('Sync finished');
     }
 
     private function generate_work_tree($id) {
@@ -153,6 +161,7 @@ class sync_git_repos {
         }
 
         $logs = array_diff_key($logs, $old_logs);
+        $result = true;
         foreach($logs as $log) {
             $log->assignment = $assignment;
             if ($this->_groupmode) {
@@ -166,7 +175,25 @@ class sync_git_repos {
                 $log->userid = $id;
                 $log->groupid = 0;
             }
-            $this->_logger->add_record($log);
+            $result = $result && $this->_logger->add_record($log);
         }
+
+        if ($result) {
+            $this->show_message(count($logs).' new commits');
+        } else {
+            $this->show_error('Error occurred while inserting logs');
+        }
+    }
+
+    private function show_message($message) {
+
+        $message = '['.date('Y-m-d H:i:s').'] '.$message.PHP_EOL;
+        fwrite(STDOUT, $message);
+    }
+
+    private function show_error($message) {
+
+        $message = '['.date('Y-m-d H:i:s').'][ERROR]'.$message.PHP_EOL;
+        fwrite(STDERR, $message);
     }
 }
