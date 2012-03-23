@@ -7,7 +7,7 @@ class git_logger {
     private $_table = 'assignment_github_logs';
 
     function __construct($assignment) {
-        $this->assignment = $assignment;
+        $this->assignment = intval($assignment);
     }
 
     function get_by_commit($commit) {
@@ -38,6 +38,84 @@ class git_logger {
         }
         $conditions['groupid'] = $groupid;
         return $this->get_records($conditions);
+    }
+
+    function get_statistics_by_group($groupid) {
+        global $DB, $CFG;
+
+        $groupid = intval($groupid);
+        if (!$groupid) {
+            return null;
+        }
+
+        $sql = "SELECT
+                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
+                GROUP BY `email`
+                UNION
+                SELECT
+                  'total' email, '' author, COUNT(*) AS commits, SUM(files) AS files,
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
+                GROUP BY `assignment`";
+        return $DB->get_records_sql($sql);
+    }
+
+    function get_statistics_by_user($userid) {
+        global $DB, $CFG;
+
+        $userid = intval($userid);
+        if (!$userid) {
+            return null;
+        }
+
+        $sql = "SELECT
+                  userid, author, COUNT(*) AS commits, SUM(files) AS files,
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`={$this->assignment} AND `userid`={$userid}
+                  AND `groupid`=0
+                GROUP BY `userid`";
+        echo $sql . PHP_EOL;
+        return $DB->get_records_sql($sql);
+    }
+
+    function get_statistics_by_email($email) {
+        global $DB, $CFG;
+
+        if (!$email) {
+            return null;
+        }
+
+        $sql = "SELECT
+                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`={$this->assignment} AND `email`='{$email}'
+                  AND `groupid`=0
+                GROUP BY `email`";
+        return $DB->get_records_sql($sql);
+    }
+
+    function get_statistics_by_group_email($groupid, $email) {
+        global $DB, $CFG;
+
+        $groupid = intval($groupid);
+        if (!$groupid || !$email) {
+            return null;
+        }
+
+        $sql = "SELECT
+                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
+                  AND `email`='{$email}'
+                GROUP BY `email`";
+        return $DB->get_records_sql($sql);
     }
 
     public function add_record($log) {
