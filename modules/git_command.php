@@ -57,8 +57,8 @@ class git_command {
             return false;
         }
 
-        $command = 'git clone '.$param->git.' '.$param->work_tree;
-        return system($command);
+        $command = 'git clone -q '.$param->git.' '.$param->work_tree;
+        return exec($command);
     }
 
     private function git_pull($param) {
@@ -69,8 +69,8 @@ class git_command {
         }
 
         chdir("$param->work_tree");
-        $command = 'git pull';
-        return system($command);
+        $command = 'git pull -q';
+        return exec($command);
     }
 
     private function git_log($param) {
