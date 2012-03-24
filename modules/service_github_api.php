@@ -90,6 +90,13 @@ class service_github_api {
         return $this->generate_http_url($git);
     }
 
+    public function generate_commit_url($url, $commit) {
+
+        $git = $this->generate_http_from_git($url);
+        $url = $git['repo'];
+        return $url . '/commit/' . $commit;
+    }
+
     public function get_repo_info($url) {
 
         $git = $this->parse_git_url($url);
