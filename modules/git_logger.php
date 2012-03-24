@@ -50,14 +50,16 @@ class git_logger {
 
         $sql = "SELECT
                   email, author, COUNT(*) AS commits, SUM(files) AS files,
-                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions,
+                  SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
                 WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
                 GROUP BY `email`
                 UNION
                 SELECT
                   'total' email, '' author, COUNT(*) AS commits, SUM(files) AS files,
-                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions,
+                  SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
                 WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
                 GROUP BY `assignment`";
@@ -74,7 +76,8 @@ class git_logger {
 
         $sql = "SELECT
                   userid, author, COUNT(*) AS commits, SUM(files) AS files,
-                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions,
+                  SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
                 WHERE `assignment`={$this->assignment} AND `userid`={$userid}
                   AND `groupid`=0
@@ -91,7 +94,8 @@ class git_logger {
 
         $sql = "SELECT
                   email, author, COUNT(*) AS commits, SUM(files) AS files,
-                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions,
+                  SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
                 WHERE `assignment`={$this->assignment} AND `email`='{$email}'
                   AND `groupid`=0
@@ -109,7 +113,8 @@ class git_logger {
 
         $sql = "SELECT
                   email, author, COUNT(*) AS commits, SUM(files) AS files,
-                  SUM(insertions) AS insertions, SUM(deletions) AS deletions
+                  SUM(insertions) AS insertions, SUM(deletions) AS deletions,
+                  SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
                 WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
                   AND `email`='{$email}'
