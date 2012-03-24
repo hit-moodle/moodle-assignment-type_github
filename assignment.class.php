@@ -155,14 +155,7 @@ class assignment_github extends assignment_base {
         
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
-
         echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
-
-        // Statistics link
-        $url = new moodle_url("/mod/assignment/type/github/log.php?id={$this->cm->id}");
-        $link = html_writer::link($url, get_string('statistics', 'assignment_github'));
-        echo '<div class="git_checklink reportlink">'.$link.'</div>';
-        echo '<div class="clearer"></div>';
 
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null, 'submission' => null));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
@@ -201,6 +194,14 @@ class assignment_github extends assignment_base {
 
         if ($repository) {
             $service = $this->git->get_api_service($repository->server);
+
+            // Statistics link
+            if ($this->group->id) {
+                $url = new moodle_url("/mod/assignment/type/github/log.php?id={$this->cm->id}");
+                $link = html_writer::link($url, get_string('statistics', 'assignment_github'));
+                echo '<div class="git_checklink reportlink">'.$link.'</div>';
+                echo '<div class="clearer"></div>';
+            }
 
             echo html_writer::tag('h4', get_string('project', 'assignment_github'));
             $table = new html_table();
