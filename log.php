@@ -95,6 +95,13 @@ echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 echo html_writer::tag('h3', get_string('statisticsdata', 'assignment_github', $name), array('class' => 'git_h3'));
 echo $OUTPUT->box_start('generalbox boxaligncenter git_log');
 
+$url = new moodle_url("/mod/assignment/view.php?id={$cm->id}");
+$link = html_writer::link($url, get_string('githubreposetting', 'assignment_github'));
+echo '<div class="git_checklink reportlink">'.$link.'</div>';
+echo '<div class="clearer"></div>';
+
+$service->print_nav_menu($repo->url);
+
 // Statistics
 echo html_writer::tag('h4', get_string('statistics', 'assignment_github'));
 $statistics_title = array('Author', 'Commits', 'Files', '+', '-', 'Total');

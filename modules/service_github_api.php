@@ -97,6 +97,27 @@ class service_github_api {
         return $url . '/commit/' . $commit;
     }
 
+    public function print_nav_menu($url, $return=false) {
+
+        $urls = $this->generate_http_from_git($url);
+        $base = $urls['repo'];
+        $links = array(
+            html_writer::link($base, 'Code', array('target' => '_blank')),
+            html_writer::link($base.'/network', 'Network', array('target' => '_blank')),
+            html_writer::link($base.'/issues', 'Issues', array('target' => '_blank')),
+            html_writer::link($base.'/graphs', 'Stats & Graphs', array('target' => '_blank')),
+        );
+        $menu = '<div class="git_menu"><ul>';
+        foreach($links as $link) {
+            $menu .= '<li>'.$link.'</li>';
+        }
+        $menu .= '</ul></div>';
+        if ($return) {
+            return $menu;
+        }
+        echo $menu;
+    }
+
     public function get_repo_info($url) {
 
         $git = $this->parse_git_url($url);

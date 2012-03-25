@@ -11,3 +11,6 @@
 .git_back_link {padding: 5px 20px 10px 20px;}
 .git_checklink {margin: 5px 0 5px 0;}
 .git_right {text-align: right; margin: 5px 20px 5px 0;}
+.git_menu {text-align: center;}
+.git_menu li {display: inline; padding: 5px 5px 5px 5px;}
+.git_menu a {padding: 5px 5px 5px 5px;}
