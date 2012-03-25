@@ -33,6 +33,7 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
         $table->add_index('github_log_userid', XMLDB_INDEX_NOTUNIQUE, array('userid'));
         $table->add_index('github_log_groupid', XMLDB_INDEX_NOTUNIQUE, array('groupid'));
         $table->add_index('github_log_commit', XMLDB_INDEX_NOTUNIQUE, array('commit'));
+        $table->add_index('github_log_email', XMLDB_INDEX_NOTUNIQUE, array('email'));
 
         // Conditionally launch create table for assignment_github_logs
         if (!$dbman->table_exists($table)) {

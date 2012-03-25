@@ -52,7 +52,8 @@
         <INDEX NAME="github_log_assignment" UNIQUE="false" FIELDS="assignment" COMMENT="Assignment ID" NEXT="github_log_userid"/>
         <INDEX NAME="github_log_userid" UNIQUE="false" FIELDS="userid" COMMENT="User ID" PREVIOUS="github_log_assignment" NEXT="github_log_groupid"/>
         <INDEX NAME="github_log_groupid" UNIQUE="false" FIELDS="groupid" COMMENT="Group ID" PREVIOUS="github_log_userid" NEXT="github_log_commit"/>
-        <INDEX NAME="github_log_commit" UNIQUE="false" FIELDS="commit" COMMENT="Commit Hash" PREVIOUS="github_log_groupid"/>
+        <INDEX NAME="github_log_commit" UNIQUE="false" FIELDS="commit" COMMENT="Commit Hash" PREVIOUS="github_log_groupid" NEXT="github_log_email"/>
+        <INDEX NAME="github_log_email" UNIQUE="false" FIELDS="email" COMMENT="Email" PREVIOUS="github_log_commit"/>
       </INDEXES>
     </TABLE>
   </TABLES>
