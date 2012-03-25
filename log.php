@@ -108,7 +108,7 @@ if ($repo) {
     $statistics_table = html_writer::start_tag('table', array('class' => 'generaltable'));
     $statistics_table .= '<tr>';
     foreach($statistics_title as $title) {
-        $statistics_table .= '<th>' . $title . '</th>';
+        $statistics_table .= '<th class="cell">' . $title . '</th>';
     } 
     $statistics_table .= '</tr>';
     if ($statistics) {
@@ -124,22 +124,22 @@ if ($repo) {
             } else {
                 $author = fullname($members[$emails[$line->email]]);
             }
-            $statistics_table .= '<td>'.$author.'</td>';
-            $statistics_table .= '<td>'.$line->commits.' ('.round($line->commits/$total->commits * 100, 2).'%)</td>';
-            $statistics_table .= '<td>'.$line->files.' ('.round($line->files/$total->files * 100, 2).'%)</td>';
-            $statistics_table .= '<td class="green">'.$line->insertions.' ('.round($line->insertions/$total->insertions * 100, 2).'%)</td>';
-            $statistics_table .= '<td class="red">'.$line->deletions.' ('.round($line->deletions/$total->deletions * 100, 2).'%)</td>';
-            $statistics_table .= '<td>'.$line->total.' ('.round($line->total/$total->total * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="cell">'.$author.'</td>';
+            $statistics_table .= '<td class="cell">'.$line->commits.' ('.round($line->commits/$total->commits * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="cell">'.$line->files.' ('.round($line->files/$total->files * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="cell green">'.$line->insertions.' ('.round($line->insertions/$total->insertions * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="cell red">'.$line->deletions.' ('.round($line->deletions/$total->deletions * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="cell">'.$line->total.' ('.round($line->total/$total->total * 100, 2).'%)</td>';
             $statistics_table .= '</tr>';
         }
     
         $statistics_table .= '<tr>';
-        $statistics_table .= '<td>'.get_string('total').'</td>';
-        $statistics_table .= '<td>'.$total->commits.'</td>';
-        $statistics_table .= '<td>'.$total->files.'</td>';
-        $statistics_table .= '<td class="green">'.$total->insertions.'</td>';
-        $statistics_table .= '<td class="red">'.$total->deletions.'</td>';
-        $statistics_table .= '<td>'.$total->total.'</td>';
+        $statistics_table .= '<td class="cell">'.get_string('total').'</td>';
+        $statistics_table .= '<td class="cell">'.$total->commits.'</td>';
+        $statistics_table .= '<td class="cell">'.$total->files.'</td>';
+        $statistics_table .= '<td class="cell green">'.$total->insertions.'</td>';
+        $statistics_table .= '<td class="cell red">'.$total->deletions.'</td>';
+        $statistics_table .= '<td class="cell">'.$total->total.'</td>';
         $statistics_table .= '</tr>';
     }
     echo $statistics_table .= html_writer::end_tag('table');
@@ -150,7 +150,7 @@ if ($repo) {
     $log_table = html_writer::start_tag('table', array('class' => 'generaltable'));
     $log_table .= '<tr>';
     foreach($log_title as $title) {
-        $log_table .= '<th>' . $title . '</th>';
+        $log_table .= '<th class="cell">' . $title . '</th>';
     } 
     $log_table .= '</tr>';
     if ($logs) {
@@ -158,20 +158,20 @@ if ($repo) {
             $log_table .= '<tr>';
             $commit_link = html_writer::link($service->generate_commit_url($repo->url, $log->commit),
                                              shorten_text($log->commit, 11), array('target' => '_blank'));
-            $log_table .= '<td>'.$commit_link.'</td>';
+            $log_table .= '<td class="cell">'.$commit_link.'</td>';
     
             if (empty($emails[$log->email])) {
                 $author = $log->author;
             } else {
                 $author = fullname($members[$emails[$log->email]]);
             }
-            $log_table .= '<td>'.$author.'</td>';
+            $log_table .= '<td class="cell">'.$author.'</td>';
     
-            $log_table .= '<td class="subject">'.$log->subject.'</td>';
-            $log_table .= '<td>'.$log->files.'</td>';
-            $log_table .= '<td class="green">'.$log->insertions.'</td>';
-            $log_table .= '<td class="red">'.$log->deletions.'</td>';
-            $log_table .= '<td>'.userdate($log->date).'</td>';
+            $log_table .= '<td class="cell subject">'.$log->subject.'</td>';
+            $log_table .= '<td class="cell">'.$log->files.'</td>';
+            $log_table .= '<td class="cell green">'.$log->insertions.'</td>';
+            $log_table .= '<td class="cell red">'.$log->deletions.'</td>';
+            $log_table .= '<td class="cell">'.userdate($log->date).'</td>';
             $log_table .= '</tr>';
         }
     }
