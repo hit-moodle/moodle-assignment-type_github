@@ -87,8 +87,6 @@ if ($groupmode) {
     $logs = $logger->get_by_user($USER->id, '', '', 0, 10);
 }
 
-$service =& $git->get_api_service($repo->server);
-
 echo $OUTPUT->header();
 groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/assignment/type/github/log.php?id=' . $cm->id, false, true);
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
@@ -100,82 +98,87 @@ $link = html_writer::link($url, get_string('githubreposetting', 'assignment_gith
 echo '<div class="git_checklink reportlink">'.$link.'</div>';
 echo '<div class="clearer"></div>';
 
-$service->print_nav_menu($repo->url);
-
-// Statistics
-echo html_writer::tag('h4', get_string('statistics', 'assignment_github'));
-$statistics_title = array('Author', 'Commits', 'Files', '+', '-', 'Total');
-$statistics_table = html_writer::start_tag('table', array('class' => 'generaltable'));
-$statistics_table .= '<tr>';
-foreach($statistics_title as $title) {
-    $statistics_table .= '<th>' . $title . '</th>';
-} 
-$statistics_table .= '</tr>';
-if ($statistics) {
-    $total = array_pop($statistics);
-    if (!$statistics) {
-        array_push($statistics, $total);
-    }
-
-    foreach($statistics as $line) {
-        $statistics_table .= '<tr>';
-        if (empty($emails[$line->email])) {
-            $author = $line->author;
-        } else {
-            $author = fullname($members[$emails[$line->email]]);
+if ($repo) {
+    $service =& $git->get_api_service($repo->server);
+    $service->print_nav_menu($repo->url);
+    
+    // Statistics
+    echo html_writer::tag('h4', get_string('statistics', 'assignment_github'));
+    $statistics_title = array('Author', 'Commits', 'Files', '+', '-', 'Total');
+    $statistics_table = html_writer::start_tag('table', array('class' => 'generaltable'));
+    $statistics_table .= '<tr>';
+    foreach($statistics_title as $title) {
+        $statistics_table .= '<th>' . $title . '</th>';
+    } 
+    $statistics_table .= '</tr>';
+    if ($statistics) {
+        $total = array_pop($statistics);
+        if (!$statistics) {
+            array_push($statistics, $total);
         }
-        $statistics_table .= '<td>'.$author.'</td>';
-        $statistics_table .= '<td>'.$line->commits.' ('.round($line->commits/$total->commits * 100, 2).'%)</td>';
-        $statistics_table .= '<td>'.$line->files.' ('.round($line->files/$total->files * 100, 2).'%)</td>';
-        $statistics_table .= '<td class="green">'.$line->insertions.' ('.round($line->insertions/$total->insertions * 100, 2).'%)</td>';
-        $statistics_table .= '<td class="red">'.$line->deletions.' ('.round($line->deletions/$total->deletions * 100, 2).'%)</td>';
-        $statistics_table .= '<td>'.$line->total.' ('.round($line->total/$total->total * 100, 2).'%)</td>';
+    
+        foreach($statistics as $line) {
+            $statistics_table .= '<tr>';
+            if (empty($emails[$line->email])) {
+                $author = $line->author;
+            } else {
+                $author = fullname($members[$emails[$line->email]]);
+            }
+            $statistics_table .= '<td>'.$author.'</td>';
+            $statistics_table .= '<td>'.$line->commits.' ('.round($line->commits/$total->commits * 100, 2).'%)</td>';
+            $statistics_table .= '<td>'.$line->files.' ('.round($line->files/$total->files * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="green">'.$line->insertions.' ('.round($line->insertions/$total->insertions * 100, 2).'%)</td>';
+            $statistics_table .= '<td class="red">'.$line->deletions.' ('.round($line->deletions/$total->deletions * 100, 2).'%)</td>';
+            $statistics_table .= '<td>'.$line->total.' ('.round($line->total/$total->total * 100, 2).'%)</td>';
+            $statistics_table .= '</tr>';
+        }
+    
+        $statistics_table .= '<tr>';
+        $statistics_table .= '<td>'.get_string('total').'</td>';
+        $statistics_table .= '<td>'.$total->commits.'</td>';
+        $statistics_table .= '<td>'.$total->files.'</td>';
+        $statistics_table .= '<td class="green">'.$total->insertions.'</td>';
+        $statistics_table .= '<td class="red">'.$total->deletions.'</td>';
+        $statistics_table .= '<td>'.$total->total.'</td>';
         $statistics_table .= '</tr>';
     }
-
-    $statistics_table .= '<tr>';
-    $statistics_table .= '<td>'.get_string('total').'</td>';
-    $statistics_table .= '<td>'.$total->commits.'</td>';
-    $statistics_table .= '<td>'.$total->files.'</td>';
-    $statistics_table .= '<td class="green">'.$total->insertions.'</td>';
-    $statistics_table .= '<td class="red">'.$total->deletions.'</td>';
-    $statistics_table .= '<td>'.$total->total.'</td>';
-    $statistics_table .= '</tr>';
-}
-echo $statistics_table .= html_writer::end_tag('table');
-
-// Log
-echo html_writer::tag('h4', get_string('latestcommits', 'assignment_github'));
-$log_title = array('Commit', 'Author', 'Subject', 'Files', '+', '-', 'Date');
-$log_table = html_writer::start_tag('table', array('class' => 'generaltable'));
-$log_table .= '<tr>';
-foreach($log_title as $title) {
-    $log_table .= '<th>' . $title . '</th>';
-} 
-$log_table .= '</tr>';
-if ($logs) {
-    foreach($logs as $commit => $log) {
-        $log_table .= '<tr>';
-        $commit_link = html_writer::link($service->generate_commit_url($repo->url, $log->commit),
-                                         shorten_text($log->commit, 11), array('target' => '_blank'));
-        $log_table .= '<td>'.$commit_link.'</td>';
-
-        if (empty($emails[$log->email])) {
-            $author = $log->author;
-        } else {
-            $author = fullname($members[$emails[$log->email]]);
+    echo $statistics_table .= html_writer::end_tag('table');
+    
+    // Log
+    echo html_writer::tag('h4', get_string('latestcommits', 'assignment_github'));
+    $log_title = array('Commit', 'Author', 'Subject', 'Files', '+', '-', 'Date');
+    $log_table = html_writer::start_tag('table', array('class' => 'generaltable'));
+    $log_table .= '<tr>';
+    foreach($log_title as $title) {
+        $log_table .= '<th>' . $title . '</th>';
+    } 
+    $log_table .= '</tr>';
+    if ($logs) {
+        foreach($logs as $commit => $log) {
+            $log_table .= '<tr>';
+            $commit_link = html_writer::link($service->generate_commit_url($repo->url, $log->commit),
+                                             shorten_text($log->commit, 11), array('target' => '_blank'));
+            $log_table .= '<td>'.$commit_link.'</td>';
+    
+            if (empty($emails[$log->email])) {
+                $author = $log->author;
+            } else {
+                $author = fullname($members[$emails[$log->email]]);
+            }
+            $log_table .= '<td>'.$author.'</td>';
+    
+            $log_table .= '<td class="subject">'.$log->subject.'</td>';
+            $log_table .= '<td>'.$log->files.'</td>';
+            $log_table .= '<td class="green">'.$log->insertions.'</td>';
+            $log_table .= '<td class="red">'.$log->deletions.'</td>';
+            $log_table .= '<td>'.userdate($log->date).'</td>';
+            $log_table .= '</tr>';
         }
-        $log_table .= '<td>'.$author.'</td>';
-
-        $log_table .= '<td class="subject">'.$log->subject.'</td>';
-        $log_table .= '<td>'.$log->files.'</td>';
-        $log_table .= '<td class="green">'.$log->insertions.'</td>';
-        $log_table .= '<td class="red">'.$log->deletions.'</td>';
-        $log_table .= '<td>'.userdate($log->date).'</td>';
-        $log_table .= '</tr>';
     }
+    echo $log_table .= html_writer::end_tag('table');
+} else {
+    echo $OUTPUT->notification(get_string('repohasnotset', 'assignment_github'));
 }
-echo $log_table .= html_writer::end_tag('table');
 
 echo $OUTPUT->box_end();
 echo $OUTPUT->box_end();
