@@ -177,7 +177,10 @@ class sync_git_repos {
             $members = groups_get_members($id, 'u.*', 'lastname ASC');
             $emails = array();
             foreach($members as $userid => $member) {
-                $emails[$this->get_user_email($userid)] = $userid;
+                $email = $this->get_user_email($userid);
+                if ($email) {
+                    $emails[$this->get_user_email($userid)] = $userid;
+                }
             }
             $old_logs = $this->_logger->get_by_group($id);
         } else {
