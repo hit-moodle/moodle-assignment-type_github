@@ -13,14 +13,33 @@ $params = implode(' ', $argv);
 preg_match('/--cm=(\d+)/', $params, $match);
 if ($match) {
     $cmid = $match[1];
+}
+
+$cms = array();
+if (!empty($cmid)) {
+    $cms[] = $cmid;
 } else {
-    echo 'Require course module ID. Usage: $ php script.php --cm=<id>' . PHP_EOL;
-    die;
+    $conditions = array('modulename' => 'assignment', 'type' => 'github');
+    $sql = "SELECT cm.id, m.name
+              FROM {course_modules} cm
+              JOIN {modules} md ON md.id = cm.module
+              JOIN {assignment} m ON m.id = cm.instance
+             WHERE md.name = :modulename AND m.assignmenttype = :type";
+    $result = $DB->get_records_sql($sql, $conditions);
+    if (empty($result)) {
+        fwrite(STDERR, 'No Github Assignment');
+        die;
+    }
+    foreach(array_keys($result) as $cmid) {
+        $cms[] = $cmid;
+    }
 }
 
 try {
-    $task = new sync_git_repos($cmid);
-    $task->sync();
+    foreach($cms as $cmid) {
+        $task = new sync_git_repos($cmid);
+        $task->sync();
+    }
 } catch (Exception $e) {
     fwrite(STDERR, $e->getMessage());
     die;
@@ -72,35 +91,40 @@ class sync_git_repos {
 
     public function sync() {
 
-        $this->show_message('Start sync repos');
+        $this->show_message('Start sync repos of assignment: '.$this->_assignmentinstance->assignment->id);
         $repos = $this->list_all_repos();
-        foreach($repos as $id => $repo) {
-            $work_tree = $this->generate_work_tree($id);
-            $this->_analyzer->set_work_tree($work_tree);
-            $this->show_message("Current work tree: [{$work_tree}] updating...");
 
-            if ($this->_analyzer->has_work_tree()) {
-                $this->_analyzer->pull();
-            } else {
+        if (!empty($repos)) {
+            foreach($repos as $id => $repo) {
+                $work_tree = $this->generate_work_tree($id);
+                $this->_analyzer->set_work_tree($work_tree);
+                $this->show_message("Current work tree: [{$work_tree}] updating...");
 
-                // convert url to git:// first, in case user use other protocol
-                $service =& $this->_git->get_api_service($repo->server);
-                $git = $service->parse_git_url($repo->url);
-                if ($git['type'] == 'git') {
-                    $url = $repo->url;
+                if ($this->_analyzer->has_work_tree()) {
+                    $this->_analyzer->pull();
                 } else {
-                    $url = $service->generate_git_url($git, 'git');
-                }
-                $this->_analyzer->pull($url);
-            }
 
-            $logs = $this->_analyzer->get_log();
-            if ($logs) {
-                $this->show_message('Analyzing...');
-                $this->store_logs($id, $repo, $logs);
-            } else {
-                $this->show_error("Failed to get log of work tree: [{$work_tree}] repo: [{$repo->url}]");
+                    // convert url to git:// first, in case user use other protocol
+                    $service =& $this->_git->get_api_service($repo->server);
+                    $git = $service->parse_git_url($repo->url);
+                    if ($git['type'] == 'git') {
+                        $url = $repo->url;
+                    } else {
+                        $url = $service->generate_git_url($git, 'git');
+                    }
+                    $this->_analyzer->pull($url);
+                }
+
+                $logs = $this->_analyzer->get_log();
+                if ($logs) {
+                    $this->show_message('Analyzing...');
+                    $this->store_logs($id, $repo, $logs);
+                } else {
+                    $this->show_error("Failed to get log of work tree: [{$work_tree}] repo: [{$repo->url}]");
+                }
             }
+        } else {
+            $this->show_message('No repos');
         }
         $this->show_message('Sync finished');
     }
