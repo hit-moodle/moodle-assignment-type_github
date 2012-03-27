@@ -1,9 +1,10 @@
 .git_h3 {text-align: center; margin: 10px 0 10px 0;}
-.git_box, .git_log {margin: 20px 10px 0 10px;}
+.git_box, .git_log {margin: 20px 10px 20px 10px;}
 .git_box .generaltable th {min-width: 125px; text-align: center;}
 .git_box .generaltable td.c1 {min-width: 100px; text-align: center; font-weight: bold;}
 .git_log .generaltable th {text-align: center;}
 .git_log .generaltable .subject {max-width: 350px;}
+.git_log .subject div {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 .git_log .red {color: red;}
 .git_box .fitemtitle {min-width: 140px;}
 .git_box .felement input {min-width: 240px;}

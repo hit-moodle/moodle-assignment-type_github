@@ -167,7 +167,7 @@ if ($repo) {
             }
             $log_table .= '<td class="cell">'.$author.'</td>';
     
-            $log_table .= '<td class="cell subject">'.$log->subject.'</td>';
+            $log_table .= '<td class="cell subject"><div>'.$log->subject.'</div></td>';
             $log_table .= '<td class="cell">'.$log->files.'</td>';
             $log_table .= '<td class="cell green">'.$log->insertions.'</td>';
             $log_table .= '<td class="cell red">'.$log->deletions.'</td>';
