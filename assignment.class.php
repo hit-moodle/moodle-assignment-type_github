@@ -412,7 +412,7 @@ class assignment_github extends assignment_base {
         }
 
         $email = $submission->data1;
-        $output = '<div>';
+        $output = '<div><ul style="list-style:none;">';
         if ($this->group->mode) {
 
             // user may in more than one groups. show all repos of these groups.
@@ -423,11 +423,7 @@ class assignment_github extends assignment_base {
                     $service =& $this->git->get_api_service($repo->server);
                     $url = $service->generate_http_from_git($repo->url);
                     $link = html_writer::link($url['repo'], $repo->repo, array('target' => '_blank'));
-                    $output .= '<span>'.$link.'</span> ';
-
-                    $url = new moodle_url("/mod/assignment/type/github/log.php?id={$this->cm->id}&group={$group->id}");
-                    $link = html_writer::link($url, get_string('statistics', 'assignment_github'));
-                    $output .= '<span>'.$link.'</span><br/>';
+                    $output .= '<li>'.$link.'</li>';
                 }
             }
         } else {
@@ -436,15 +432,11 @@ class assignment_github extends assignment_base {
                 $service =& $this->git->get_api_service($repo->server);
                 $url = $service->generate_http_from_git($repo->url);
                 $link = html_writer::link($url['repo'], $repo->repo, array('target' => '_blank'));
-                $output .= '<span>'.$link.'</span>';
-
-                $url = new moodle_url("/mod/assignment/type/github/log.php?id={$this->cm->id}&group={$group->id}");
-                $link = html_writer::link($url, get_string('statistics', 'assignment_github'));
-                $output .= '<span>'.$link.'</span><br/>';
+                $output .= '<li>'.$link.'</li>';
             }
         }
 
-        $output .= '<span>' . $email . '</span></div>';
+        $output .= '<li>' . $email . '</li></ul></div>';
         return $output;
     }
 
