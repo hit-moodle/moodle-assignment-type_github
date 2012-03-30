@@ -378,7 +378,7 @@ class assignment_github extends assignment_base {
         return groups_get_members($id, $fields, $sort);
     }
 
-    private function update_submission($userid = 0, $data) {
+    public function update_submission($userid = 0, $data) {
         global $USER, $DB;
 
         if (!$userid) {
@@ -388,9 +388,16 @@ class assignment_github extends assignment_base {
         $submission = $this->get_submission($userid, true);
 
         $update = new stdClass();
-        $update->id           = $submission->id;
-        $update->data1        = $data->email;
-        $update->timemodified = time();
+        $update->id = $submission->id;
+        if (!empty($data->email)) {
+            $update->data1 = $data->email;
+        }
+
+        if (empty($data->timemodified)) {
+            $update->timemodified = time();
+        } else {
+            $update->timemodified = $data->timemodified;
+        }
 
         $DB->update_record('assignment_submissions', $update);
 

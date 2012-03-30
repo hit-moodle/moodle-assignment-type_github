@@ -122,6 +122,20 @@ class git_logger {
         return $DB->get_records_sql($sql);
     }
 
+    function get_user_last_commit($userid) {
+        global $DB, $CFG;
+
+        if (!$userid) {
+            return null;
+        }
+
+        $sql = "SELECT *
+                FROM `{$CFG->prefix}{$this->_table}`
+                WHERE `assignment`= ? AND `userid`= ?
+                ORDER BY `date` DESC LIMIT 0, 1";
+        return $DB->get_record_sql($sql, array($this->assignment, $userid));
+    }
+
     public function add_record($log) {
         global $DB;
         if ($log->assignment != $this->assignment) {

@@ -187,6 +187,7 @@ class sync_git_repos {
             $old_logs = $this->_logger->get_by_user($id);
         }
 
+        // write logs
         $logs = array_diff_key($logs, $old_logs);
         $result = true;
         foreach($logs as $log) {
@@ -203,6 +204,23 @@ class sync_git_repos {
                 $log->groupid = 0;
             }
             $result = $result && $this->_logger->add_record($log);
+        }
+
+        // update submission time
+        foreach($members as $userid => $member) {
+            $last_commit = $this->_logger->get_user_last_commit($userid);
+            if (empty($last_commit) || empty($this->_submissions[$userid])) {
+                continue;
+            }
+
+            if ($last_commit->date > $this->_submissions[$userid]->timemodified) {
+                $data = new stdClass();
+                $data->timemodified = $last_commit->date;
+                $this->_assignmentinstance->update_submission($userid, $data);
+
+                // refresh cache
+                $this->_submissions[$userid] = $this->_assignmentinstance->get_submission($userid);
+            }
         }
 
         if ($result) {
