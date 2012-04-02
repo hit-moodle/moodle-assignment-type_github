@@ -38,8 +38,6 @@ class assignment_github extends assignment_base {
 
         $this->view_repos();
 
-        $this->view_logs();
-
         $this->view_dates();
 
         $this->view_feedback();
@@ -196,72 +194,12 @@ class assignment_github extends assignment_base {
 
         if ($repository) {
             $service = $this->git->get_api_service($repository->server);
+            $git_info = $service->parse_git_url($repository->url);
 
-            echo html_writer::tag('h4', get_string('project', 'assignment_github'));
-            $table = new html_table();
+            echo html_writer::tag('h4', get_string('project', 'assignment_github') . ' ' . $git_info['repo']);
+            $service->print_nav_menu($repository->url);
 
-            $repository_row = new html_table_row();
-            $repository_cell_header = new html_table_cell();
-            $repository_cell_content = new html_table_cell();
-
-            $repository_cell_header->text = get_string('projecthome', 'assignment_github');
-            $repository_cell_header->header = true;
-
-            $links = $service->generate_http_from_git($repository->url);
-            $repo_link = html_writer::link($links['repo'],
-                                           $links['repo'],
-                                           array('target' => '_blank'));
-
-            $repository_cell_content->text = $repo_link;
-
-            $repository_row->cells = array($repository_cell_header, $repository_cell_content);
-
-            $table->data = array($repository_row);
-            echo html_writer::table($table);
-
-            if (!empty($this->group->members) && $this->capability['view']) {
-                echo html_writer::tag('h4', get_string('memberlist', 'assignment_github'));
-                $member_table = new html_table();
-                foreach($this->group->members as $id => $member) {
-                    $member_row = new html_table_row();
-                    $member_cell_picture = new html_table_cell();
-                    $member_cell_name = new html_table_cell();
-                    $member_cell_picture->header = true;
-                    $member_cell_picture->text = $OUTPUT->user_picture($member);
-
-                    if ($USER->id != $id) {
-                        $member_cell_name->text = html_writer::link($CFG->wwwroot.'/message/index.php?id='.$id,
-                                                                    fullname($member),
-                                                                    array('title' => get_string('messageselectadd')));
-                    } else {
-                        $member_cell_name->text = fullname($member);
-                    }
-                    $member_row->cells = array($member_cell_picture, $member_cell_name);
-
-                    if ($this->capability['edit']) {
-                        $member_cell_content = new html_table_cell();
-
-                        // get email from submission
-                        $submission = $this->get_submission($id);
-                        if (!empty($submission)) {
-                            $email = $submission->data1;
-                        } else {
-                            $email = null;
-                        }
-
-                        if ($email) {
-                            $member_cell_content->text = html_writer::link('mailto:' . $email,
-                                                                           $email,
-                                                                           array('target' => '_blank'));
-                        } else {
-                            $member_cell_content->text = get_string('emailnotset', 'assignment_github');
-                        }
-                        $member_row->cells[] = $member_cell_content;
-                    }
-                    $member_table->data[] = $member_row;
-                }
-                echo html_writer::table($member_table);
-            }
+            $this->print_logs($repository);
 
             if (!$this->capability['edit'] || !$this->isopen()) {
                 return;
@@ -483,9 +421,66 @@ class assignment_github extends assignment_base {
     }
 
     /**
-     * Display statistics data and latest 10 git commit logs
+     * Print the member list of a group
+     *
+     * @param boolean $return default to false, echo the html. If true, return html as string
+     * @return string|void
      */
-    function view_logs() {
+    function print_member_list($return = false) {
+        global $USER, $OUTPUT, $CFG;
+
+        if (empty($this->group->members)) {
+            return null;
+        }
+
+        $output = '<table>';
+        foreach($this->group->members as $id => $member) {
+            $output .= '<tr><td class="c0">'.$OUTPUT->user_picture($member).'</td>';
+            if ($USER->id != $id) {
+                $link = html_writer::link($CFG->wwwroot.'/message/index.php?id='.$id,
+                                          fullname($member),
+                                          array('title' => get_string('messageselectadd')));
+                $output .= '<td class="c1">'.$link.'</td>';
+            } else {
+                $output .= '<td class="c1">'.fullname($member).'</td>';
+            }
+
+            if ($this->capability['edit']) {
+
+                // get email from submission
+                $submission = $this->get_submission($id);
+                if (!empty($submission)) {
+                    $email = $submission->data1;
+                } else {
+                    $email = null;
+                }
+
+                if ($email) {
+                    $link = html_writer::link('mailto:' . $email, $email, array('target' => '_blank'));
+                    $output .= '<td class="c2">'.$link.'</td>';
+                } else {
+                    $output .= '<td class="c2">'.get_string('emailnotset', 'assignment_github').'</td>';
+                }
+            }
+            $output .= '</tr>';
+        }
+        $output .= '</table>';
+        $output = html_writer::tag('h4', get_string('memberlist', 'assignment_github')) . $output;
+        if ($return) {
+            return $output;
+        } else {
+            echo $output;
+        }
+    }
+
+    /**
+     * Display statistics data and latest 10 git commit logs
+     *
+     * @param object $repo
+     * @param boolean $return default to false, echo the html. If true, return html as string
+     * @return string|void
+     */
+    function print_logs($repo = null, $return = false) {
         global $USER, $OUTPUT;
 
         if ($this->group->mode && !$this->group->id) {
@@ -494,7 +489,10 @@ class assignment_github extends assignment_base {
 
         $logger = new git_logger($this->assignment->id);
 
-        $repo = $this->get_repo();
+        if (empty($repo)) {
+            $repo = $this->get_repo();
+        }
+
         if (empty($repo)) {
             return;
         }
@@ -520,14 +518,11 @@ class assignment_github extends assignment_base {
             $logs = $logger->get_by_user($USER->id, '', '', 0, 10);
         }
 
-        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        echo html_writer::tag('h3', get_string('statistics', 'assignment_github'), array('class' => 'git_h3'));
-        echo $OUTPUT->box_start('generalbox boxaligncenter git_log');
+        $output = $OUTPUT->box_start('boxaligncenter git_log');
         $service =& $this->git->get_api_service($repo->server);
-        $service->print_nav_menu($repo->url);
         
         // Statistics
-        echo html_writer::tag('h4', get_string('statistics', 'assignment_github'));
+        $output .= html_writer::tag('h4', get_string('statistics', 'assignment_github'));
         $statistics_title = array('Author', 'Commits', 'Files', '+', '-', 'Total');
         $statistics_table = html_writer::start_tag('table', array('class' => 'generaltable'));
         $statistics_table .= '<tr>';
@@ -566,10 +561,10 @@ class assignment_github extends assignment_base {
             $statistics_table .= '<td class="cell">'.$total->total.'</td>';
             $statistics_table .= '</tr>';
         }
-        echo $statistics_table .= html_writer::end_tag('table');
+        $output .= $statistics_table .= html_writer::end_tag('table');
         
         // Log
-        echo html_writer::tag('h4', get_string('latestcommits', 'assignment_github'));
+        $output .= html_writer::tag('h4', get_string('latestcommits', 'assignment_github'));
         $log_title = array('Commit', 'Author', 'Subject', 'Files', '+', '-', 'Date');
         $log_table = html_writer::start_tag('table', array('class' => 'generaltable'));
         $log_table .= '<tr>';
@@ -599,9 +594,14 @@ class assignment_github extends assignment_base {
                 $log_table .= '</tr>';
             }
         }
-        echo $log_table .= html_writer::end_tag('table');
-        echo $OUTPUT->box_end();
-        echo $OUTPUT->box_end();
+        $output .= $log_table .= html_writer::end_tag('table');
+        $output .= $OUTPUT->box_end();
+
+        if ($return) {
+            return $output;
+        } else {
+            echo $output;
+        }
     }
 }
 
