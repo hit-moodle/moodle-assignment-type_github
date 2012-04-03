@@ -155,6 +155,7 @@ class assignment_github extends assignment_base {
         
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
+        $this->print_member_list();
         echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
 
         $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null, 'submission' => null));
@@ -192,17 +193,30 @@ class assignment_github extends assignment_base {
             $repository = $this->get_repo();
         }
 
+        if ($this->group->mode && !$this->group->id) {
+            echo $OUTPUT->notification(get_string('choosegroup', 'assignment_github'));
+            return;
+        }
+
         if ($repository) {
             $service = $this->git->get_api_service($repository->server);
             $git_info = $service->parse_git_url($repository->url);
 
             echo html_writer::tag('h4', get_string('project', 'assignment_github') . ' ' . $git_info['repo']);
             $service->print_nav_menu($repository->url);
+        } else {
+            echo $OUTPUT->notification(get_string('repohasnotset', 'assignment_github'));
+        }
 
-            $this->print_logs($repository);
+        if ($this->capability['edit'] && $this->isopen()) {
+            if ($this->group->mode && $this->group->ismember || !$this->group->mode) {
+                $submission = $this->get_submission($USER->id);
+            }
 
-            if (!$this->capability['edit'] || !$this->isopen()) {
-                return;
+            if (!empty($submission)) {
+                echo html_writer::start_tag('div', array('class' => 'git_error')) .
+                     $OUTPUT->notification(get_string('emailnotset', 'assignment_github')) .
+                     html_writer::end_tag('div');
             }
 
             $url = $PAGE->url;
@@ -212,15 +226,11 @@ class assignment_github extends assignment_base {
             $url->param('sesskey', sesskey());
             $url->param('edit', '1');
             echo $OUTPUT->single_button($url, get_string('turneditingon'));
-            return;
         }
 
-        if ($this->group->mode && !$this->group->id) {
-            echo $OUTPUT->notification(get_string('choosegroup', 'assignment_github'));
-            return;
+        if ($repository) {
+            $this->print_logs($repository);
         }
-
-        echo $OUTPUT->notification(get_string('repohasnotset', 'assignment_github'));
     }
 
     /**
@@ -426,25 +436,20 @@ class assignment_github extends assignment_base {
      * @param boolean $return default to false, echo the html. If true, return html as string
      * @return string|void
      */
-    function print_member_list($return = false) {
+    function print_member_list($members = null, $return = false) {
         global $USER, $OUTPUT, $CFG;
 
-        if (empty($this->group->members)) {
+        if (empty($members)) {
+            $members = $this->group->members;
+        }
+
+        if (empty($members)) {
             return null;
         }
 
-        $output = '<table>';
-        foreach($this->group->members as $id => $member) {
-            $output .= '<tr><td class="c0">'.$OUTPUT->user_picture($member).'</td>';
-            if ($USER->id != $id) {
-                $link = html_writer::link($CFG->wwwroot.'/message/index.php?id='.$id,
-                                          fullname($member),
-                                          array('title' => get_string('messageselectadd')));
-                $output .= '<td class="c1">'.$link.'</td>';
-            } else {
-                $output .= '<td class="c1">'.fullname($member).'</td>';
-            }
-
+        $output = '<div class="git_member_list"><ul>';
+        foreach($members as $id => $member) {
+            $output .= '<li><span class="git_user_pic';
             if ($this->capability['edit']) {
 
                 // get email from submission
@@ -456,16 +461,14 @@ class assignment_github extends assignment_base {
                 }
 
                 if ($email) {
-                    $link = html_writer::link('mailto:' . $email, $email, array('target' => '_blank'));
-                    $output .= '<td class="c2">'.$link.'</td>';
+                    $output .= ' git_user_pic_email';
                 } else {
-                    $output .= '<td class="c2">'.get_string('emailnotset', 'assignment_github').'</td>';
+                    $output .= ' git_user_pic_no_email';
                 }
             }
-            $output .= '</tr>';
+            $output .= '">'.$OUTPUT->user_picture($member).'</span></li>';
         }
-        $output .= '</table>';
-        $output = html_writer::tag('h4', get_string('memberlist', 'assignment_github')) . $output;
+        $output .= '</ul></div>';
         if ($return) {
             return $output;
         } else {
