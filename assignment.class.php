@@ -213,7 +213,7 @@ class assignment_github extends assignment_base {
                 $submission = $this->get_submission($USER->id);
             }
 
-            if (!empty($submission)) {
+            if (empty($submission)) {
                 echo html_writer::start_tag('div', array('class' => 'git_error')) .
                      $OUTPUT->notification(get_string('emailnotset', 'assignment_github')) .
                      html_writer::end_tag('div');
@@ -304,7 +304,7 @@ class assignment_github extends assignment_base {
         $mform->display();
     }
 
-    private function get_members_by_id($id, $fields = array(), $sort = 'lastname ASC') {
+    public function get_members_by_id($id, $fields = array(), $sort = 'lastname ASC') {
 
         if(is_array($fields) && $fields) {
             foreach($fields as $k => $v) {
