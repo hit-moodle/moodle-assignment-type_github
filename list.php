@@ -97,7 +97,11 @@ if ($groupmode) {
         $c3->text = $assignmentinstance->print_member_list($members, true);
 
         // last commit date
-        $c4->text = userdate($commits[$group->id]->date);
+        if (empty($commits[$group->id])) {
+            $c4->text = '';
+        } else {
+            $c4->text = userdate($commits[$group->id]->date);
+        }
 
         $row->cells = array($c1, $c2, $c3, $c4);
         $rows[$group->id] = $row;

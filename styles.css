@@ -22,3 +22,4 @@
 .git_user_pic_no_email img {border: 1px solid red;}
 .git_list .generaltable td {vertical-align: middle;}
 .git_list .git_member_list {text-align: left;}
+.git_list .generaltable .c2 {max-width: 400px;}
