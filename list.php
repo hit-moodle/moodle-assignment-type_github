@@ -47,7 +47,27 @@ $git = new git($course->id, $assignment->id);
 $repos = $assignmentinstance->list_all();
 $repo_count = count($repos);
 $table = new html_table();
+$logger = new git_logger($assignment->id);
+$commits = $logger->list_all_latest_commits($groupmode);
+
 if ($groupmode) {
+
+    // table header
+    $row = new html_table_row();
+    $c1 = new html_table_cell();
+    $c2 = new html_table_cell();
+    $c3 = new html_table_cell();
+    $c4 = new html_table_cell();
+
+    $c1->text = get_string('group');
+    $c2->text = get_string('project', 'assignment_github');
+    $c3->text = get_string('memberlist', 'assignment_github');
+    $c4->text = get_string('lastmodified');
+    $c1->header = $c2->header = $c3->header = $c4->header = true;
+    $row->cells = array($c1, $c2, $c3, $c4);
+    $table->data[] = $row;
+
+    // table content
     $groups = groups_get_all_groups($cm->course, 0, $cm->groupingid);
     $group_names = array();
     $rows = array();
@@ -55,6 +75,8 @@ if ($groupmode) {
         $row = new html_table_row();
         $c1 = new html_table_cell();
         $c2 = new html_table_cell();
+        $c3 = new html_table_cell();
+        $c4 = new html_table_cell();
 
         if ($groupmode == VISIBLEGROUPS || $can_grade) {
             $link = new moodle_url("/mod/assignment/view.php?id={$cm->id}&group={$group->id}");
@@ -71,7 +93,13 @@ if ($groupmode) {
         } else {
             $c2->text = get_string('repohasnotset', 'assignment_github');
         }
-        $row->cells = array($c1, $c2);
+        $members = $assignmentinstance->get_members_by_id($group->id);
+        $c3->text = $assignmentinstance->print_member_list($members, true);
+
+        // last commit date
+        $c4->text = userdate($commits[$group->id]->date);
+
+        $row->cells = array($c1, $c2, $c3, $c4);
         $rows[$group->id] = $row;
     }
     natsort($group_names);
@@ -94,7 +122,7 @@ echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 echo html_writer::tag('h3', get_string('githubreposettinglist', 'assignment_github'), array('class' => 'git_h3'));
 echo '<div class="git_right">'.get_string('repohasset', 'assignment_github', $repo_count.' / '.$total).'</div>';
 echo '<div class="clearer"></div>';
-echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
+echo $OUTPUT->box_start('boxaligncenter git_list');
 echo html_writer::table($table);
 echo $OUTPUT->box_end();
 echo $OUTPUT->box_end();

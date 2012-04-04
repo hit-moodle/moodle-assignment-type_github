@@ -136,6 +136,25 @@ class git_logger {
         return $DB->get_record_sql($sql, array($this->assignment, $userid));
     }
 
+    function list_all_latest_commits($groupmode) {
+        global $DB, $CFG;
+
+        $table = "{$CFG->prefix}{$this->_table}";
+        if ($groupmode) {
+            $key = 'groupid';
+        } else {
+            $key = 'userid';
+        }
+
+        $sql = "SELECT *
+                  FROM (SELECT `{$key}`, MAX(`date`) AS `date`
+                        FROM `{$table}`
+                        WHERE `assignment`= ?
+                        GROUP BY `{$key}`) AS `a`
+             LEFT JOIN `{$table}` AS `b` USING(`{$key}`, `date`)";
+        return $DB->get_records_sql($sql, array($this->assignment));
+    }
+
     public function add_record($log) {
         global $DB;
         if ($log->assignment != $this->assignment) {

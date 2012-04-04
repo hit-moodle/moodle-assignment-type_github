@@ -1,5 +1,5 @@
 .git_h3 {text-align: center; margin: 10px 0 10px 0;}
-.git_box {margin: 20px 10px 20px 10px;}
+.git_box, .git_list {margin: 20px 10px 20px 10px;}
 .git_box h4 {padding: 5px 0;}
 .git_log .generaltable th {text-align: center;}
 .git_log .generaltable .subject {max-width: 350px;}
@@ -15,7 +15,10 @@
 .git_menu li {display: inline; padding: 5px 5px 5px 5px;}
 .git_menu a {padding: 5px 5px 5px 5px;}
 .git_member_list {list-style: none; text-align: right;}
+.git_member_list ul {margin: 5px 5px;}
 .git_member_list li {display: inline; padding: 5px 4px 5px 4px; line-height: 35px;}
 .git_user_pic img {padding: 1px 1px;}
 .git_user_pic_email img {border: 1px solid green;}
 .git_user_pic_no_email img {border: 1px solid red;}
+.git_list .generaltable td {vertical-align: middle;}
+.git_list .git_member_list {text-align: left;}

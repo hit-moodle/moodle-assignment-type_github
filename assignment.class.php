@@ -450,7 +450,7 @@ class assignment_github extends assignment_base {
         $output = '<div class="git_member_list"><ul>';
         foreach($members as $id => $member) {
             $output .= '<li><span class="git_user_pic';
-            if ($this->capability['edit']) {
+            if ($this->capability['grade']) {
 
                 // get email from submission
                 $submission = $this->get_submission($id);
