@@ -211,12 +211,12 @@ class assignment_github extends assignment_base {
         if ($this->capability['edit'] && $this->isopen()) {
             if ($this->group->mode && $this->group->ismember || !$this->group->mode) {
                 $submission = $this->get_submission($USER->id);
-            }
 
-            if (empty($submission)) {
-                echo html_writer::start_tag('div', array('class' => 'git_error')) .
-                     $OUTPUT->notification(get_string('emailnotset', 'assignment_github')) .
-                     html_writer::end_tag('div');
+                if (empty($submission)) {
+                    echo html_writer::start_tag('div', array('class' => 'git_error')) .
+                         $OUTPUT->notification(get_string('emailnotset', 'assignment_github')) .
+                         html_writer::end_tag('div');
+                }
             }
 
             $url = $PAGE->url;
