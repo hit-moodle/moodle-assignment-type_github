@@ -2,7 +2,7 @@
 
 class git_analyzer {
 
-    private $work_tree;
+    private $worktree;
 
     private $cmd;
 
@@ -13,28 +13,28 @@ class git_analyzer {
         $this->workspace = $this->cmd->get_workspace();
     }
 
-    function set_work_tree($work_tree) {
+    function set_worktree($worktree) {
 
-        $this->work_tree = $work_tree;
+        $this->worktree = $worktree;
     }
 
-    function has_work_tree() {
+    function has_worktree() {
 
         $dir = getcwd();
         chdir("$this->workspace");
-        $result = is_dir("$this->work_tree");
-        clearstatcache(true, "$this->work_tree");
+        $result = is_dir("$this->worktree");
+        clearstatcache(true, "$this->worktree");
         chdir("$dir");
         return $result;
     }
 
-    function pull($git = null) {
+    function pull($url = null) {
 
         $params = $this->cmd->prepare_params();
-        $params->work_tree = $this->work_tree;
-        if (!empty($git)) {
+        $params->worktree = $this->worktree;
+        if (!empty($url)) {
             $command = 'clone';
-            $params->git = $git;
+            $params->url = $url;
         } else {
             $command = 'pull';
         }
@@ -45,7 +45,7 @@ class git_analyzer {
     function get_log($custom_params = array()) {
 
         $params = $this->cmd->prepare_params();
-        $params->work_tree = $this->work_tree;
+        $params->worktree = $this->worktree;
         $default_params = array(
             '--shortstat',
             '--no-merges',

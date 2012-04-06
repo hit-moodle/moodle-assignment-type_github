@@ -96,11 +96,11 @@ class sync_git_repos {
 
         if (!empty($repos)) {
             foreach($repos as $id => $repo) {
-                $work_tree = $this->generate_work_tree($id);
-                $this->_analyzer->set_work_tree($work_tree);
-                $this->show_message("Current work tree: [{$work_tree}] updating...");
+                $worktree = $this->generate_worktree($id);
+                $this->_analyzer->set_worktree($worktree);
+                $this->show_message("Current work tree: [{$worktree}] updating...");
 
-                if ($this->_analyzer->has_work_tree()) {
+                if ($this->_analyzer->has_worktree()) {
                     $this->_analyzer->pull();
                 } else {
 
@@ -120,7 +120,7 @@ class sync_git_repos {
                     $this->show_message('Analyzing...');
                     $this->store_logs($id, $repo, $logs);
                 } else {
-                    $this->show_error("Failed to get log of work tree: [{$work_tree}] repo: [{$repo->url}]");
+                    $this->show_error("Failed to get log of work tree: [{$worktree}] repo: [{$repo->url}]");
                 }
             }
         } else {
@@ -129,7 +129,7 @@ class sync_git_repos {
         $this->show_message('Sync finished');
     }
 
-    private function generate_work_tree($id) {
+    private function generate_worktree($id) {
 
         $prefix = "A{$this->_assignmentinstance->assignment->id}";
         if ($this->_groupmode) {

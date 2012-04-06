@@ -27,8 +27,8 @@ class git_command {
     function prepare_params() {
 
         $param = new stdClass();
-        $param->work_tree = '';
-        $param->git = '';
+        $param->worktree = '';
+        $param->url = '';
         $param->other = array();
         return $param;
     }
@@ -40,68 +40,66 @@ class git_command {
         }
 
         $command = 'git_'.$command;
-        $dir = getcwd();
-        chdir("$this->workspace");
         if (method_exists($this, $command)) {
-            $result = $this->$command($param);
-        } else {
-            $result = false;
+            return $this->$command($param);
         }
-        chdir("$dir");
-        return $result;
+        return false;
     }
 
     private function git_clone($param) {
 
-        if (!$param->git || !$param->work_tree) {
-            return false;
-        }
-
-        $command = 'git clone -q '.$param->git.' '.$param->work_tree;
-        return exec($command);
+        $dir = $this->get_worktree($param);
+        $command = sprintf('clone %s %s', escapeshellarg($param->url), escapeshellarg($dir));
+        return $this->run($this->workspace, $command);
     }
 
     private function git_pull($param) {
 
-        if (!is_dir("$param->work_tree")) {
-            clearstatcache();
-            return false;
-        }
-
-        chdir("$param->work_tree");
-        $command = 'git pull -q';
-        return exec($command);
+        $dir = $this->get_worktree($param);
+        $command = 'pull';
+        return $this->run($dir, $command);
     }
 
     private function git_log($param) {
 
-        if (!is_dir("$param->work_tree")) {
-            clearstatcache();
-            return false;
-        }
-
-        chdir("$param->work_tree");
-        $command = 'git log';
+        $dir = $this->get_worktree($param);
+        $command = 'log';
         foreach($param->other as $p) {
             $command .= ' '.$p;
         }
-
-        return shell_exec($command);
+        return $this->run($dir, $command);
     }
 
     private function git_show($param) {
 
-        if (!is_dir("$param->work_tree")) {
-            clearstatcache();
-            return false;
-        }
-
-        chdir("$param->work_tree");
-        $command = 'git show';
+        $dir = $this->get_worktree($param);
+        $command = 'show';
         foreach($param->other as $p) {
             $command .= ' '.$p;
         }
+        return $this->run($dir, $command);
+    }
 
-        return shell_exec($command);
+    private function get_worktree($param) {
+
+        if (substr($param->worktree, 0, 1) == '/') {
+            return $param->worktree;
+        }
+        return "{$this->workspace}/{$param->worktree}";
+    }
+
+    public function run($dir, $command_string) {
+
+        $command = sprintf('cd %s && git %s', escapeshellarg($dir), $command_string);
+
+        ob_start();
+        passthru($command, $return_var);
+        $output = ob_get_clean();
+
+        if ($return_var !== 0) {
+            throw new Exception($output, $return_var);
+        }
+
+        return trim($output);
     }
 }
