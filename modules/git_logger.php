@@ -185,4 +185,20 @@ class git_logger {
             return false;
         }
     }
+
+    function delete_by_group($id) {
+        global $DB;
+
+        $select = "assignment = ? AND groupid = ?";
+        $params = array($this->assignment, $id);
+        $DB->delete_records_select($this->_table, $select, $params);
+    }
+
+    function delete_by_user($id) {
+        global $DB;
+
+        $select = "assignment = ? AND userid = ?";
+        $params = array($this->assignment, $id);
+        $DB->delete_records_select($this->_table, $select, $params);
+    }
 }

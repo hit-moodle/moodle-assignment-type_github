@@ -53,11 +53,11 @@ class sync_git_repos {
 
     private $_git;
 
-    private $_analyzer;
-
     private $_logger;
 
     private $_submissions;
+
+    private $_required_branch = 'master';
 
     public function __construct($cmid) {
         global $DB;
@@ -85,7 +85,6 @@ class sync_git_repos {
         $this->_assignmentinstance = new assignment_github($cm->id, $assignment, $cm, $course);
         $this->_groupmode = groups_get_activity_groupmode($cm);
         $this->_git = new git($course->id, $assignment->id);
-        $this->_analyzer = new git_analyzer();
         $this->_logger = new git_logger($assignment->id);
     }
 
@@ -97,25 +96,16 @@ class sync_git_repos {
         if (!empty($repos)) {
             foreach($repos as $id => $repo) {
                 $worktree = $this->generate_worktree($id);
-                $this->_analyzer->set_worktree($worktree);
+                $analyzer = git_analyzer::init($worktree);
                 $this->show_message("Current work tree: [{$worktree}] updating...");
 
-                if ($this->_analyzer->has_worktree()) {
-                    $this->_analyzer->pull();
+                if ($analyzer->has_worktree()) {
+                    $this->pull($repo, $worktree);
                 } else {
-
-                    // convert url to git:// first, in case user use other protocol
-                    $service =& $this->_git->get_api_service($repo->server);
-                    $git = $service->parse_git_url($repo->url);
-                    if ($git['type'] == 'git') {
-                        $url = $repo->url;
-                    } else {
-                        $url = $service->generate_git_url($git, 'git');
-                    }
-                    $this->_analyzer->pull($url);
+                    $this->create($repo, $worktree);
                 }
 
-                $logs = $this->_analyzer->get_log();
+                $logs = $analyzer->get_log();
                 if ($logs) {
                     $this->show_message('Analyzing...');
                     $this->store_logs($id, $repo, $logs);
@@ -129,6 +119,12 @@ class sync_git_repos {
         $this->show_message('Sync finished');
     }
 
+    /**
+     * Generate the work tree name by group mode and id
+     *
+     * @param string $id group id or user id
+     * @return string
+     */
     private function generate_worktree($id) {
 
         $prefix = "A{$this->_assignmentinstance->assignment->id}";
@@ -140,6 +136,11 @@ class sync_git_repos {
         return "{$prefix}-{$suffix}";
     }
 
+    /**
+     * Get all submissions of the assignment
+     *
+     * @return array userid => submission
+     */
     private function get_submissions() {
 
         $results = $this->_assignmentinstance->get_submissions();
@@ -157,6 +158,12 @@ class sync_git_repos {
         return $this->_assignmentinstance->list_all();
     }
 
+    /**
+     * Get a user's email in submission
+     *
+     * @param int $userid
+     * @return string
+     */
     private function get_user_email($userid) {
 
         if (empty($this->_submissions)) {
@@ -170,6 +177,13 @@ class sync_git_repos {
         return $this->_submissions[$userid]->data1;
     }
 
+    /**
+     * Store git logs in database
+     *
+     * @param int $id user id or group id
+     * @param object $repo repository setting
+     * @param array $logs git logs
+     */
     private function store_logs($id, $repo, $logs) {
 
         $assignment = $this->_assignmentinstance->assignment->id;
@@ -230,15 +244,185 @@ class sync_git_repos {
         }
     }
 
+    /**
+     * Write message to stdout
+     *
+     * @param string $message
+     */
     private function show_message($message) {
 
         $message = '['.date('Y-m-d H:i:s').'] '.$message.PHP_EOL;
         fwrite(STDOUT, $message);
     }
 
+    /**
+     * Write message to stderr
+     *
+     * @param string $message
+     */
     private function show_error($message) {
 
         $message = '['.date('Y-m-d H:i:s').'][ERROR]'.$message.PHP_EOL;
         fwrite(STDERR, $message);
+    }
+
+    /**
+     * Create local repository by git clone command
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function create($repo, $worktree) {
+
+        // convert url to git:// first, in case user use other protocol
+        $service =& $this->_git->get_api_service($repo->server);
+        $git = $service->parse_git_url($repo->url);
+        if ($git['type'] == 'git') {
+            $url = $repo->url;
+        } else {
+            $url = $service->generate_git_url($git, 'git');
+        }
+
+        try {
+            $analyzer = git_analyzer::init($worktree);
+            $this->show_message('Creating...');
+            $output = $analyzer->pull($url);
+        } catch (Exception $e) {
+            $this->handle_clone_failure($e, $repo, $worktree);
+            return;
+        }
+
+        // Check master branch
+        if (!$this->master_exists($repo, $worktree)) {
+            $analyzer->delete();
+        }
+    }
+
+    /**
+     * Call git pull command to get the latest codes
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function pull($repo, $worktree) {
+
+        // Check master branch
+        if (!$this->master_exists($repo, $worktree)) {
+            return $this->recreate($repo, $worktree);
+        }
+
+        try {
+            $analyzer = git_analyzer::init($worktree);
+            $this->show_message('Updating...');
+            $output = $analyzer->pull();
+        } catch (Exception $e) {
+            $this->handle_pull_failure($e, $repo, $worktree);
+            return;
+        }
+
+        // If the repository was rebuilt, we may get such output
+        if (preg_match('/^Merge made by recursive\./', $output)) {
+            $this->show_message('No common commits. Recreate logs.');
+            $this->recreate($repo, $worktree);
+        }
+    }
+
+    /**
+     * Check if the required branch exists
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function master_exists($repo, $worktree) {
+
+        $analyzer = git_analyzer::init($worktree);
+        try {
+            $branches = $analyzer->get_branches();
+        } catch (Exception $e) {
+        }
+        if (array_search($this->_required_branch, $branches) === false) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Delete all logs and local repository and then call create() method
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function recreate($repo, $worktree) {
+
+        $this->delete_data($repo, $worktree);
+        $this->create($repo, $worktree);
+    }
+
+    /**
+     * Delete all logs and local repository
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function delete_data($repo, $worktree) {
+
+        $analyzer = git_analyzer::init($worktree);
+        $analyzer->delete();
+        if ($this->_groupmode) {
+            $this->_logger->delete_by_group($repo->groupid);
+        } else {
+            $this->_logger->delete_by_user($repo->userid);
+        }
+    }
+
+    /**
+     * Handle exception of git clone command. It will skip network failure.
+     *
+     * @param object $e Exception
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function handle_clone_failure($e, $repo, $worktree) {
+
+        $error_code = $e->getCode();
+        if ($error_code == 128) {
+
+            // network failure
+            if (!$e->getMessage()) {
+                return;
+            }
+
+            // TODO: Not empty directory
+        }
+    }
+
+    /**
+     * Handle exception of git pull command. It will skip network failure.
+     * If auto-merge failed or the repository has something wrong, it will recreate the local repository
+     *
+     * @param object $e Exception
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function handle_pull_failure($e, $repo, $worktree) {
+
+        $analyzer = git_analyzer::init($worktree);
+        $error_code = $e->getCode();
+        if ($error_code == 1) {
+
+            // network failure or repository is empty
+            if (!$e->getMessage()) {
+                return;
+            }
+
+            // other failure such as merge failed etc.
+            $this->show_message('Auto-merge failed. Recreate logs.');
+            $this->recreate($repo, $worktree);
+        } else if ($error_code == 128) {
+
+            // .git is lost
+            $this->show_message('Repository directory error. Recreate logs.');
+            $this->recreate($repo, $worktree);
+        }
     }
 }
