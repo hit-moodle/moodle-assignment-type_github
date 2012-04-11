@@ -91,6 +91,14 @@ class git_analyzer {
         return $logs;
     }
 
+    function get_branches() {
+
+        $params = $this->cmd->prepare_params();
+        $params->worktree = $this->worktree;
+        $output = $this->cmd->exec('branch', $params);
+        return array_filter(preg_replace('/[\s\*]/', '', explode("\n", $output)));
+    }
+
     function get_log_by_range($since = '', $until = '') {
 
         $params = array();
