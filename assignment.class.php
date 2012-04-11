@@ -606,6 +606,64 @@ class assignment_github extends assignment_base {
             echo $output;
         }
     }
+
+    /**
+     * Deletes an assignment activity
+     *
+     * Deletes all database records, files and calendar events for this assignment.
+     *
+     * @global object
+     * @global object
+     * @param object $assignment The assignment to be deleted
+     * @return boolean False indicates error
+     */
+    function delete_instance($assignment) {
+        global $CFG, $DB;
+
+        $result = parent::delete_instance($assignment);
+
+        // TODO: delete repo settings, logs and repos
+
+        return $result;
+    }
+
+    /**
+     * Reset all submissions
+     */
+    function reset_userdata($data) {
+        global $CFG, $DB;
+
+        $status = parent::reset_userdata($data);
+
+        if (!$DB->count_records('assignment', array('course'=>$data->courseid, 'assignmenttype'=>$this->type))) {
+            return $status;
+        }
+
+        $componentstr = get_string('modulenameplural', 'assignment');
+        $status = array();
+
+        $typestr = get_string('type'.$this->type, 'assignment');
+        if($typestr === '[[type'.$this->type.']]'){
+            $typestr = get_string('type'.$this->type, 'assignment_'.$this->type);
+        }
+
+        if (!empty($data->reset_assignment_submissions)) {
+            $assignmentssql = "SELECT a.id
+                                 FROM {assignment} a
+                                WHERE a.course=? AND a.assignmenttype=?";
+            $params = array($data->courseid, $this->type);
+
+            $DB->delete_records_select('assignment_github_repos', "assignment IN ($assignmentssql)", $params);
+            $DB->delete_records_select('assignment_github_logs', "assignment IN ($assignmentssql)", $params);
+
+            $status[] = array('component'=>$componentstr, 'item'=>get_string('deleteallrepos','assignment_github').': '.$typestr, 'error'=>false);
+            $status[] = array('component'=>$componentstr, 'item'=>get_string('deletealllogs','assignment_github').': '.$typestr, 'error'=>false);
+
+            // TODO: delete repos
+        }
+
+        return $status;
+    }
 }
 
 class mod_assignment_github_edit_form extends moodleform {

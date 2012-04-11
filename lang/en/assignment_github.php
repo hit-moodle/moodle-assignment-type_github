@@ -1,6 +1,9 @@
 <?php
 
 $string['choosegroup'] = 'Please switch to a group first';
+$string['deletealllogs'] = 'Delete all git logs';
+$string['deleteallrepos'] = 'Delete all repos';
+$string['deleteallreposettings'] = 'Delete all repo settings';
 $string['editrepository'] = 'Edit repository';
 $string['editusername'] = 'Edit Username or organization';
 $string['editusername_help'] = 'Username or organization of the repository.';

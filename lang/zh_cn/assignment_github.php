@@ -1,6 +1,9 @@
 <?php
 
 $string['choosegroup'] = '请先切换到一个小组';
+$string['deletealllogs'] = '删除所有容器日志';
+$string['deleteallrepos'] = '删除所有容器';
+$string['deleteallreposettings'] = '删除所有容器设置';
 $string['editrepository'] = '编辑容器';
 $string['editusername'] = '编辑Username或organization';
 $string['editusername_help'] = '容器所有者的Username或organization。';
