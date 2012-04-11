@@ -4,6 +4,8 @@ class git_command {
 
     private $workspace;
 
+    private $command = 'git';
+
     function __construct($workspace = null) {
         global $CFG;
 
@@ -29,6 +31,7 @@ class git_command {
         $param = new stdClass();
         $param->worktree = '';
         $param->url = '';
+        $param->branch = 'master';
         $param->other = array();
         return $param;
     }
@@ -49,35 +52,43 @@ class git_command {
     private function git_clone($param) {
 
         $dir = $this->get_worktree($param);
-        $command = sprintf('clone %s %s', escapeshellarg($param->url), escapeshellarg($dir));
-        return $this->run($this->workspace, $command);
+        $param_string = sprintf('clone -b %s %s %s', $param->branch, escapeshellarg($param->url), escapeshellarg($dir));
+        return $this->run($this->workspace, $this->command, $param_string);
     }
 
     private function git_pull($param) {
 
         $dir = $this->get_worktree($param);
-        $command = 'pull';
-        return $this->run($dir, $command);
+        $param_string = 'pull';
+        return $this->run($dir, $this->command, $param_string);
     }
 
     private function git_log($param) {
 
         $dir = $this->get_worktree($param);
-        $command = 'log';
+        $param_string = 'log';
         foreach($param->other as $p) {
-            $command .= ' '.$p;
+            $param_string .= ' '.$p;
         }
-        return $this->run($dir, $command);
+        return $this->run($dir, $this->command, $param_string);
     }
 
     private function git_show($param) {
 
         $dir = $this->get_worktree($param);
-        $command = 'show';
+        $param_string = 'show';
         foreach($param->other as $p) {
-            $command .= ' '.$p;
+            $param_string .= ' '.$p;
         }
-        return $this->run($dir, $command);
+        return $this->run($dir, $this->command, $param_string);
+    }
+
+    private function git_delete($param) {
+
+        $dir = $this->get_worktree($param);
+        $command = 'rm';
+        $param_string = sprintf('-rf %s', escapeshellarg($dir));
+        return $this->run($this->workspace, $command, $param_string);
     }
 
     private function get_worktree($param) {
@@ -88,9 +99,9 @@ class git_command {
         return "{$this->workspace}/{$param->worktree}";
     }
 
-    public function run($dir, $command_string) {
+    public function run($dir, $command, $param_string) {
 
-        $command = sprintf('cd %s && git %s', escapeshellarg($dir), $command_string);
+        $command = sprintf('cd %s && %s %s', escapeshellarg($dir), $command, $param_string);
 
         ob_start();
         passthru($command, $return_var);
