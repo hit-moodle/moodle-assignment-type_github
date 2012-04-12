@@ -29,7 +29,7 @@ class git_analyzer {
         return self::$_analyzers[$worktree];
     }
 
-    function has_worktree() {
+    function worktree_exists() {
 
         $dir = getcwd();
         chdir("$this->workspace");

@@ -99,13 +99,13 @@ class sync_git_repos {
                 $analyzer = git_analyzer::init($worktree);
                 $this->show_message("Current work tree: [{$worktree}] updating...");
 
-                if ($analyzer->has_worktree()) {
+                if ($analyzer->worktree_exists()) {
                     $this->pull($repo, $worktree);
                 } else {
                     $this->create($repo, $worktree);
                 }
 
-                $logs = $analyzer->get_log();
+                $logs = $this->get_logs($repo, $worktree);
                 if ($logs) {
                     $this->show_message('Analyzing...');
                     $this->store_logs($id, $repo, $logs);
@@ -285,7 +285,7 @@ class sync_git_repos {
 
         try {
             $analyzer = git_analyzer::init($worktree);
-            $this->show_message('Creating...');
+            $this->show_message('Cloning...');
             $output = $analyzer->pull($url);
         } catch (Exception $e) {
             $this->handle_clone_failure($e, $repo, $worktree);
@@ -308,12 +308,13 @@ class sync_git_repos {
 
         // Check master branch
         if (!$this->master_exists($repo, $worktree)) {
+            $this->show_message('Master branch not found. Recreate logs.');
             return $this->recreate($repo, $worktree);
         }
 
         try {
             $analyzer = git_analyzer::init($worktree);
-            $this->show_message('Updating...');
+            $this->show_message('Pulling...');
             $output = $analyzer->pull();
         } catch (Exception $e) {
             $this->handle_pull_failure($e, $repo, $worktree);
@@ -344,6 +345,21 @@ class sync_git_repos {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get git logs of $repo by git log command
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function get_logs($repo, $worktree) {
+
+        $analyzer = git_analyzer::init($worktree);
+        if ($analyzer->worktree_exists()) {
+            return $analyzer->get_log();
+        }
+        return null;
     }
 
     /**
