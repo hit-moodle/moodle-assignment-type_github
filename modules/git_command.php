@@ -6,7 +6,9 @@ class git_command {
 
     private $command = 'git';
 
-    function __construct($workspace = null) {
+    private static $terminals = array();
+
+    private function __construct($workspace = null) {
         global $CFG;
 
         $default = $CFG->dataroot . '/github';
@@ -19,6 +21,17 @@ class git_command {
             $workspace = $default;
         }
         $this->workspace = $workspace;
+    }
+
+    public static function init($workspace = null) {
+
+        $cmd = new git_command($workspace);
+        $workspace = $cmd->get_workspace();
+
+        if (empty(self::$terminals[$workspace])) {
+            self::$terminals[$workspace] = $cmd;
+        }
+        return self::$terminals[$workspace];
     }
 
     function get_workspace() {

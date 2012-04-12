@@ -11,7 +11,7 @@ class git_analyzer {
     private static $_analyzers = array();
 
     private function __construct($worktree, $workspace = null) {
-        $this->cmd = new git_command($workspace);
+        $this->cmd = git_command::init($workspace);
         $this->worktree = $worktree;
         $this->workspace = $this->cmd->get_workspace();
     }
