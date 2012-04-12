@@ -122,6 +122,13 @@ class git_command {
         return "{$this->workspace}/{$param->worktree}";
     }
 
+    public function delete($pattern) {
+
+        $command = 'rm';
+        $param_string = sprintf('-rf %s', $pattern);
+        return $this->run($this->workspace, $command, $param_string);
+    }
+
     public function run($dir, $command, $param_string) {
 
         $command = sprintf('cd %s && %s %s', escapeshellarg($dir), $command, $param_string);

@@ -640,7 +640,6 @@ class assignment_github extends assignment_base {
         }
 
         $componentstr = get_string('modulenameplural', 'assignment');
-        $status = array();
 
         $typestr = get_string('type'.$this->type, 'assignment');
         if($typestr === '[[type'.$this->type.']]'){
@@ -656,10 +655,23 @@ class assignment_github extends assignment_base {
             $DB->delete_records_select('assignment_github_repos', "assignment IN ($assignmentssql)", $params);
             $DB->delete_records_select('assignment_github_logs', "assignment IN ($assignmentssql)", $params);
 
-            $status[] = array('component'=>$componentstr, 'item'=>get_string('deleteallrepos','assignment_github').': '.$typestr, 'error'=>false);
+            $status[] = array('component'=>$componentstr, 'item'=>get_string('deleteallreposettings','assignment_github').': '.$typestr, 'error'=>false);
             $status[] = array('component'=>$componentstr, 'item'=>get_string('deletealllogs','assignment_github').': '.$typestr, 'error'=>false);
 
-            // TODO: delete repos
+            // Delete repos
+            $delete_error = false;
+            $assignments = $DB->get_records_sql($assignmentssql, $params);
+            if ($assignments) {
+                $cmd = git_command::init();
+                foreach(array_keys($assignments) as $assignmentid) {
+                    try {
+                        $cmd->delete("A{$assignmentid}-*");
+                    } catch (Exception $e) {
+                        $delete_error = true;
+                    }
+                }
+            }
+            $status[] = array('component'=>$componentstr, 'item'=>get_string('deleteallrepos','assignment_github').': '.$typestr, 'error'=>$delete_error);
         }
 
         return $status;
