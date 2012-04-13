@@ -27,7 +27,7 @@ if (!empty($cmid)) {
              WHERE md.name = :modulename AND m.assignmenttype = :type";
     $result = $DB->get_records_sql($sql, $conditions);
     if (empty($result)) {
-        fwrite(STDERR, 'No Github Assignment');
+        fwrite(STDERR, 'No Github Assignment'.PHP_EOL);
         die;
     }
     foreach(array_keys($result) as $cmid) {
