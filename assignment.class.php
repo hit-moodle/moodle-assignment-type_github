@@ -611,6 +611,7 @@ class assignment_github extends assignment_base {
      * Deletes an assignment activity
      *
      * Deletes all database records, files and calendar events for this assignment.
+     * Deletes repo settings, logs and local repositories.
      *
      * @global object
      * @global object
@@ -622,7 +623,21 @@ class assignment_github extends assignment_base {
 
         $result = parent::delete_instance($assignment);
 
-        // TODO: delete repo settings, logs and repos
+        // Delete repo settings, logs and repos
+        if (! $DB->delete_records('assignment_github_repos', array('assignment'=>$assignment->id))) {
+            $result = false;
+        }
+
+        if (! $DB->delete_records('assignment_github_logs', array('assignment'=>$assignment->id))) {
+            $result = false;
+        }
+
+        $cmd = git_command::init();
+        try {
+            $cmd->delete("A{$assignment->id}-*");
+        } catch (Exception $e) {
+            $result = false;
+        }
 
         return $result;
     }
