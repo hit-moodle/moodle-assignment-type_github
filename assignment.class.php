@@ -634,7 +634,7 @@ class assignment_github extends assignment_base {
 
         $cmd = git_command::init();
         try {
-            $cmd->delete("A{$assignment->id}-*");
+            $cmd->delete("/^A{$assignment->id}-/");
         } catch (Exception $e) {
             $result = false;
         }
@@ -680,7 +680,7 @@ class assignment_github extends assignment_base {
                 $cmd = git_command::init();
                 foreach(array_keys($assignments) as $assignmentid) {
                     try {
-                        $cmd->delete("A{$assignmentid}-*");
+                        $cmd->delete("/^A{$assignmentid}-/");
                     } catch (Exception $e) {
                         $delete_error = true;
                     }

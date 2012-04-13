@@ -109,9 +109,7 @@ class git_command {
     private function git_delete($param) {
 
         $dir = $this->get_worktree($param);
-        $command = 'rm';
-        $param_string = sprintf('-rf %s', escapeshellarg($dir));
-        return $this->run($this->workspace, $command, $param_string);
+        return $this->delete_dir($dir);
     }
 
     private function get_worktree($param) {
@@ -124,9 +122,14 @@ class git_command {
 
     public function delete($pattern) {
 
-        $command = 'rm';
-        $param_string = sprintf('-rf %s', $pattern);
-        return $this->run($this->workspace, $command, $param_string);
+        $worktrees = scandir($this->workspace);
+        foreach($worktrees as $worktree) {
+            if ($worktree != '.' && $worktree != '..') {
+                if (preg_match($pattern, $worktree)) {
+                    $this->delete_dir($this->workspace.'/'.$worktree);
+                }
+            }
+        }
     }
 
     public function run($dir, $command, $param_string) {
@@ -142,5 +145,25 @@ class git_command {
         }
 
         return trim($output);
+    }
+
+    private function delete_dir($dir) {
+
+        $dir = rtrim($dir, '/');
+        if (!is_dir($dir)) {
+            return;
+        }
+        $objects = scandir($dir);
+        foreach($objects as $object) {
+            if ($object != '.' && $object != '..') {
+                $target = $dir.'/'.$object;
+                if (filetype($target) == 'dir') {
+                    $this->delete_dir($target);
+                } else {
+                    unlink($target);
+                }
+            }
+        }
+        rmdir($dir);
     }
 }
