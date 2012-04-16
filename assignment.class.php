@@ -373,18 +373,14 @@ class assignment_github extends assignment_base {
         if ($this->group->mode) {
 
             // user may in more than one groups. show all repos of these groups.
-            $groups = groups_get_all_groups($this->cm->course, $userid, $this->cm->groupingid);
-            foreach($groups as $id => $group) {
-                $repo = $this->git->get_by_group($id);
-                if (!empty($repo)) {
-                    $service =& $this->git->get_api_service($repo->server);
-                    $url = $service->generate_http_from_git($repo->url);
-                    $link = html_writer::link($url['repo'], $repo->repo, array('target' => '_blank'));
-                    $output .= '<li>'.$link.'</li>';
-                }
-            }
+            $id_list = array_keys(groups_get_all_groups($this->cm->course, $userid, $this->cm->groupingid));
+            $get_info_method = 'get_by_group';
         } else {
-            $repo = $this->git->get_by_user($userid);
+            $id_list = array($userid);
+            $get_info_method = 'get_by_user';
+        }
+        foreach($id_list as $id) {
+            $repo = $this->git->$get_info_method($id);
             if (!empty($repo)) {
                 $service =& $this->git->get_api_service($repo->server);
                 $url = $service->generate_http_from_git($repo->url);
