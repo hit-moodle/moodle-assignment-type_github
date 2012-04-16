@@ -116,6 +116,10 @@ class assignment_github extends assignment_base {
         }
 
         // view edit
+        if ($this->group->mode == NOGROUPS) {
+            $this->capability['view'] = true;
+            $this->capability['edit'] = true;
+        }
     }
 
     /**
@@ -291,8 +295,13 @@ class assignment_github extends assignment_base {
     private function edit_form($repo = null) {
         global $PAGE, $USER;
 
-        // Group mode, check permission
-        if (($this->capability['view'] && !$this->capability['edit']) || !$this->group->id || !$this->isopen()) {
+        // check assignment status and user permission
+        if (!$this->isopen() || !$this->capability['edit']) {
+            return $this->show_repo($repo);
+        }
+
+        // Group mode, check permission and groupid
+        if ($this->group->mode && (!$this->capability['view'] || !$this->group->id)) {
             return $this->show_repo($repo);
         }
 

@@ -75,7 +75,7 @@ class git_logger {
         }
 
         $sql = "SELECT
-                  userid, author, COUNT(*) AS commits, SUM(files) AS files,
+                  userid, author, email, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
                 FROM `{$CFG->prefix}{$this->_table}`
