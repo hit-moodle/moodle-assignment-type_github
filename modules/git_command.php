@@ -4,14 +4,14 @@ class git_command {
 
     private $workspace;
 
-    private $command = 'git';
+    private $command;
 
     private static $terminals = array();
 
     private function __construct($workspace = null) {
-        global $CFG;
+        global $ASSIGNMENT_GITHUB;
 
-        $default = $CFG->dataroot . '/github';
+        $default = $ASSIGNMENT_GITHUB->workspace;
         if (!is_dir("$default")) {
             mkdir($default, 0777);
         }
@@ -21,6 +21,7 @@ class git_command {
             $workspace = $default;
         }
         $this->workspace = $workspace;
+        $this->command = $ASSIGNMENT_GITHUB->command;
     }
 
     public static function init($workspace = null) {
@@ -40,11 +41,12 @@ class git_command {
     }
 
     function prepare_params() {
+        global $ASSIGNMENT_GITHUB;
 
         $param = new stdClass();
         $param->worktree = '';
         $param->url = '';
-        $param->branch = 'master';
+        $param->branch = $ASSIGNMENT_GITHUB->branch;
         $param->other = array();
         return $param;
     }

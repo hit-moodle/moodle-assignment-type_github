@@ -57,10 +57,10 @@ class sync_git_repos {
 
     private $_submissions;
 
-    private $_required_branch = 'master';
+    private $_required_branch;
 
     public function __construct($cmid) {
-        global $DB;
+        global $DB, $ASSIGNMENT_GITHUB;
 
         if (! $cm = get_coursemodule_from_id('assignment', $cmid)) {
             throw new Exception(get_string('invalidcoursemodule', 'error'));
@@ -86,6 +86,7 @@ class sync_git_repos {
         $this->_groupmode = groups_get_activity_groupmode($cm);
         $this->_git = new git($course->id, $assignment->id);
         $this->_logger = new git_logger($assignment->id);
+        $this->_required_branch = $ASSIGNMENT_GITHUB->branch;
     }
 
     public function sync() {
@@ -293,7 +294,7 @@ class sync_git_repos {
         }
 
         // Check master branch
-        if (!$this->master_exists($repo, $worktree)) {
+        if (!$this->required_branch_exists($repo, $worktree)) {
             $analyzer->delete();
         }
     }
@@ -307,7 +308,7 @@ class sync_git_repos {
     private function pull($repo, $worktree) {
 
         // Check master branch
-        if (!$this->master_exists($repo, $worktree)) {
+        if (!$this->required_branch_exists($repo, $worktree)) {
             $this->show_message('Master branch not found. Recreate logs.');
             return $this->recreate($repo, $worktree);
         }
@@ -334,7 +335,7 @@ class sync_git_repos {
      * @param object $repo repository setting
      * @param string $worktree
      */
-    private function master_exists($repo, $worktree) {
+    private function required_branch_exists($repo, $worktree) {
 
         $analyzer = git_analyzer::init($worktree);
         try {
