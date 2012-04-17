@@ -86,7 +86,7 @@ class git_analyzer {
             $log->files = $match[6];
             $log->insertions = $match[7];
             $log->deletions = $match[8];
-            $logs[$log->commit] = $log;
+            $logs[$log->commit] = $this->convert_encoding($log);
         }
         return $logs;
     }
@@ -119,5 +119,15 @@ class git_analyzer {
         $params = $this->cmd->prepare_params();
         $params->worktree = $this->worktree;
         return $this->cmd->exec('delete', $params);
+    }
+
+    private function convert_encoding($log) {
+
+        // Try to change this to fit different conditions
+        $from_encoding = array('UTF-8, ASCII, EUC-CN');
+
+        $log->author = mb_convert_encoding($log->author, 'UTF-8', $from_encoding);
+        $log->subject = mb_convert_encoding($log->subject, 'UTF-8', $from_encoding);
+        return $log;
     }
 }
