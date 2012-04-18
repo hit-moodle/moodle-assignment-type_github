@@ -710,14 +710,14 @@ class mod_assignment_github_edit_form extends moodleform {
 
         // visible elements
         $mform->addElement('text', 'url', get_string('repositoryrourl', 'assignment_github'));
-        $mform->addHelpButton('url', 'repositoryrourl', 'assignment_github');
+        $mform->addElement('static', null, null, '<div>'.get_string('repositoryrourl_help', 'assignment_github').'</div>');
         $mform->setType('url', PARAM_TEXT);
         $mform->addRule('url', get_string('required'), 'required', null, 'client');
 
         // teacher is not allowed to edit students' email
         if ($group->mode && $group->ismember || !$group->mode) {
             $mform->addElement('text', 'email', get_string('memberemail', 'assignment_github', fullname($USER)));
-            $mform->addHelpButton('email', 'memberemail', 'assignment_github');
+            $mform->addElement('static', null, null, '<div>'.get_string('memberemail_help', 'assignment_github').'</div>');
             $mform->setType('email', PARAM_EMAIL);
             $mform->addRule('email', get_string('required'), 'required', null, 'client');
 
