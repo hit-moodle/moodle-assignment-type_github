@@ -41,7 +41,7 @@ class git_logger {
     }
 
     function get_statistics_by_group($groupid) {
-        global $DB, $CFG;
+        global $DB;
 
         $groupid = intval($groupid);
         if (!$groupid) {
@@ -49,25 +49,26 @@ class git_logger {
         }
 
         $sql = "SELECT
-                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  email, MAX(author) AS author, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
-                FROM `{$CFG->prefix}{$this->_table}`
-                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
+                FROM {{$this->_table}}
+                WHERE `assignment`= ? AND `groupid`= ?
                 GROUP BY `email`
                 UNION
                 SELECT
                   'total' email, '' author, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
-                FROM `{$CFG->prefix}{$this->_table}`
-                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
+                FROM {{$this->_table}}
+                WHERE `assignment`= ? AND `groupid`= ?
                 GROUP BY `assignment`";
-        return $DB->get_records_sql($sql);
+        $params = array($this->assignment, $groupid, $this->assignment, $groupid);
+        return $DB->get_records_sql($sql, $params);
     }
 
     function get_statistics_by_user($userid) {
-        global $DB, $CFG;
+        global $DB;
 
         $userid = intval($userid);
         if (!$userid) {
@@ -75,36 +76,38 @@ class git_logger {
         }
 
         $sql = "SELECT
-                  userid, author, email, COUNT(*) AS commits, SUM(files) AS files,
+                  userid, MAX(author) AS author, MAX(email) AS email, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
-                FROM `{$CFG->prefix}{$this->_table}`
-                WHERE `assignment`={$this->assignment} AND `userid`={$userid}
+                FROM {{$this->_table}}
+                WHERE `assignment`= ? AND `userid`= ?
                   AND `groupid`=0
                 GROUP BY `userid`";
-        return $DB->get_records_sql($sql);
+        $params = array($this->assignment, $userid);
+        return $DB->get_records_sql($sql, $params);
     }
 
     function get_statistics_by_email($email) {
-        global $DB, $CFG;
+        global $DB;
 
         if (!$email) {
             return null;
         }
 
         $sql = "SELECT
-                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  email, MAX(author) AS author, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
-                FROM `{$CFG->prefix}{$this->_table}`
-                WHERE `assignment`={$this->assignment} AND `email`='{$email}'
+                FROM {{$this->_table}}
+                WHERE `assignment`= ? AND `email`= ?
                   AND `groupid`=0
                 GROUP BY `email`";
-        return $DB->get_records_sql($sql);
+        $params = array($this->assignment, $email);
+        return $DB->get_records_sql($sql, $params);
     }
 
     function get_statistics_by_group_email($groupid, $email) {
-        global $DB, $CFG;
+        global $DB;
 
         $groupid = intval($groupid);
         if (!$groupid || !$email) {
@@ -112,34 +115,34 @@ class git_logger {
         }
 
         $sql = "SELECT
-                  email, author, COUNT(*) AS commits, SUM(files) AS files,
+                  email, MAX(author) AS author, COUNT(*) AS commits, SUM(files) AS files,
                   SUM(insertions) AS insertions, SUM(deletions) AS deletions,
                   SUM(insertions)+SUM(deletions) AS total
-                FROM `{$CFG->prefix}{$this->_table}`
-                WHERE `assignment`={$this->assignment} AND `groupid`={$groupid}
-                  AND `email`='{$email}'
+                FROM {{$this->_table}}
+                WHERE `assignment`= ? AND `groupid`= ?
+                  AND `email`= ?
                 GROUP BY `email`";
+        $params = array($this->assignment, $groupid, $email);
         return $DB->get_records_sql($sql);
     }
 
     function get_user_last_commit($userid) {
-        global $DB, $CFG;
+        global $DB;
 
         if (!$userid) {
             return null;
         }
 
         $sql = "SELECT *
-                FROM `{$CFG->prefix}{$this->_table}`
+                FROM {{$this->_table}}
                 WHERE `assignment`= ? AND `userid`= ?
                 ORDER BY `date` DESC LIMIT 0, 1";
         return $DB->get_record_sql($sql, array($this->assignment, $userid));
     }
 
     function list_all_latest_commits($groupmode) {
-        global $DB, $CFG;
+        global $DB;
 
-        $table = "{$CFG->prefix}{$this->_table}";
         if ($groupmode) {
             $key = 'groupid';
         } else {
@@ -148,10 +151,10 @@ class git_logger {
 
         $sql = "SELECT *
                   FROM (SELECT `{$key}`, MAX(`date`) AS `date`
-                        FROM `{$table}`
+                        FROM {{$this->_table}}
                         WHERE `assignment`= ?
                         GROUP BY `{$key}`) AS `a`
-             LEFT JOIN `{$table}` AS `b` USING(`{$key}`, `date`)";
+             LEFT JOIN {{$this->_table}} AS `b` USING(`{$key}`, `date`)";
         return $DB->get_records_sql($sql, array($this->assignment));
     }
 
