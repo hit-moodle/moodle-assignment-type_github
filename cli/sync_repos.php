@@ -7,18 +7,20 @@ require_once($CFG->dirroot.'/mod/assignment/type/github/assignment.class.php');
 
 $CFG->debug = DEBUG_NORMAL;
 
-$params = implode(' ', $argv);
-
-// check params
-preg_match('/--cm=(\d+)/', $params, $match);
-if ($match) {
-    $cmid = $match[1];
+$cms = array();
+$options = getopt('', array('cm::'));
+if (!empty($options['cm'])) {
+    $cm = $options['cm'];
+    if (is_array($cm)) {
+        foreach($cm as $id) {
+            $cms[] = intval($id);
+        }
+    } else {
+        $cms[] = intval($cm);
+    }
 }
 
-$cms = array();
-if (!empty($cmid)) {
-    $cms[] = $cmid;
-} else {
+if (empty($cms)) {
     $conditions = array('modulename' => 'assignment', 'type' => 'github');
     $sql = "SELECT cm.id, m.name
               FROM {course_modules} cm
@@ -41,7 +43,7 @@ try {
         $task->sync();
     }
 } catch (Exception $e) {
-    fwrite(STDERR, $e->getMessage());
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
     die;
 }
 
