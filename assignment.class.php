@@ -528,6 +528,7 @@ class assignment_github extends assignment_base {
 
         $output = $OUTPUT->box_start('boxaligncenter git_log');
         $service =& $this->git->get_api_service($repo->server);
+        $gitlinks = array();
         
         // Statistics
         $output .= html_writer::tag('h4', get_string('statistics', 'assignment_github'));
@@ -546,10 +547,23 @@ class assignment_github extends assignment_base {
         
             foreach($statistics as $line) {
                 $statistics_table .= '<tr>';
+
+                // Try to get user's page on host site
+                $gitlinks[$line->email] = $service->get_user_link($line->email);
                 if (empty($emails[$line->email])) {
-                    $author = $line->author;
+                    if ($gitlinks[$line->email]) {
+                        $author = html_writer::link($gitlinks[$line->email], $line->author, array('target' => '_blank'));
+                    } else {
+                        $author = $line->author;
+                    }
                 } else {
-                    $author = fullname($members[$emails[$line->email]]);
+                    $key = $emails[$line->email];
+                    $members[$key]->fullname = fullname($members[$key]);
+                    if ($gitlinks[$line->email]) {
+                        $author = html_writer::link($gitlinks[$line->email], $members[$key]->fullname, array('target' => '_blank'));
+                    } else {
+                        $author = $members[$key]->fullname;
+                    }
                 }
                 $statistics_table .= '<td class="cell">'.$author.'</td>';
                 $statistics_table .= '<td class="cell">'.$line->commits.' ('.round($line->commits/$total->commits * 100, 2).'%)</td>';
@@ -587,10 +601,19 @@ class assignment_github extends assignment_base {
                                                  shorten_text($log->commit, 11), array('target' => '_blank'));
                 $log_table .= '<td class="cell">'.$commit_link.'</td>';
         
-                if (empty($emails[$log->email])) {
-                    $author = $log->author;
+                $key = $emails[$log->email];
+                if (empty($key)) {
+                    if ($gitlinks[$log->email]) {
+                        $author = html_writer::link($gitlinks[$log->email], $log->author, array('target' => '_blank'));
+                    } else {
+                        $author = $log->author;
+                    }
                 } else {
-                    $author = fullname($members[$emails[$log->email]]);
+                    if ($gitlinks[$log->email]) {
+                        $author = html_writer::link($gitlinks[$log->email], $members[$key]->fullname, array('target' => '_blank'));
+                    } else {
+                        $author = $members[$emails[$log->email]]->fullname;
+                    }
                 }
                 $log_table .= '<td class="cell">'.$author.'</td>';
         
