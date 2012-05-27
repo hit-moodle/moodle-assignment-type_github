@@ -144,4 +144,22 @@ class service_github_api {
         );
         return $repository;
     }
+
+    public function get_user($email) {
+
+        try {
+            $user = $this->_client->getUserApi()->searchEmail($email);
+        } catch (Exception $e) {
+            $user = null;
+        }
+        return $user;
+    }
+
+    public function get_user_link($email) {
+
+        $user = $this->get_user($email);
+        if ($user) {
+            return $this->_web_root . '/' . $user['login'];
+        }
+    }
 }

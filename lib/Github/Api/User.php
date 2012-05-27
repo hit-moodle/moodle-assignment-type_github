@@ -24,6 +24,13 @@ class Github_Api_User extends Github_Api
         return $response['users'];
     }
 
+    public function searchEmail($email)
+    {
+        $response = $this->get('user/email/'.urlencode($email), array(), array('format'=>'xml'));
+    
+        return $response;
+    }
+
     /**
      * Get extended information about a user by its username
      * http://develop.github.com/p/users.html#getting_user_information

@@ -121,9 +121,25 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
             return $response;
         } elseif ('json' === $options['format']) {
             return json_decode($response, true);
+        } elseif ('xml' === $options['format']) {
+            $xml = new SimpleXMLElement($response);
+            return $this->xmlToArray($xml);
         }
 
         throw new Exception(__CLASS__.' only supports json & text format, '.$options['format'].' given.');
+    }
+
+    private function xmlToArray($xml)
+    {
+        $array = json_decode(json_encode($xml), TRUE);
+        foreach (array_slice($array, 0) as $key => $value) {
+            if (empty($value)) {
+                $array[$key] = NULL;
+            } elseif (is_array($value)) {
+                $array[$key] = $this->xmlToArray($value);
+            }
+        }
+        return $array;
     }
 
     /**
