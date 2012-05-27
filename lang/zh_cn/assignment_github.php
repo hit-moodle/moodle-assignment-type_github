@@ -10,6 +10,7 @@ $string['editusername_help'] = '容器所有者的Username或organization。';
 $string['emailnotset'] = '您未设置向git提交所用的邮箱';
 $string['githubreposetting'] = 'Git容器';
 $string['githubreposettinglist'] = '所有容器列表';
+$string['lastsynced'] = '最近同步';
 $string['latestcommits'] = '最近的提交';
 $string['memberemail'] = '{$a}的email';
 $string['memberemail_help'] = '此用户在此git容器上提交代码所用的邮箱';

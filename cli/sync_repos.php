@@ -188,6 +188,7 @@ class sync_git_repos {
      * @param array $logs git logs
      */
     private function store_logs($id, $repo, $logs) {
+        global $DB;
 
         $assignment = $this->_assignmentinstance->assignment->id;
         if ($this->_groupmode) {
@@ -222,6 +223,10 @@ class sync_git_repos {
             }
             $result = $result && $this->_logger->add_record($log);
         }
+
+        // update sync time
+        $repo->synced = time();
+        $DB->update_record('assignment_github_repos', $repo);
 
         // update submission time
         foreach($members as $userid => $member) {

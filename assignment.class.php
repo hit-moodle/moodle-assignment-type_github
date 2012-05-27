@@ -258,7 +258,6 @@ class assignment_github extends assignment_base {
             $repoid = null;
         }
         $groupmode = $this->group->mode;
-        $members = array();
 
         // Group mode, check permission
         if (!$this->capability['edit']) {
@@ -267,9 +266,9 @@ class assignment_github extends assignment_base {
 
         $result = false;
         if ($repoid) {
-            $result = $this->git->update_repo($repoid, $github_info->url, $members);
+            $result = $this->git->update_repo($repoid, $github_info->url);
         } else {
-            $result = $this->git->add_repo($github_info->url, $members, $groupmode);
+            $result = $this->git->add_repo($github_info->url, $groupmode);
         }
         $repo = $this->get_repo();
 
@@ -430,6 +429,10 @@ class assignment_github extends assignment_base {
             }
             echo '<tr><td class="c0">'.get_string('lastedited').':</td>';
             echo '    <td class="c1">'.userdate($lastmodified).' '.fullname($user);
+            if ($repo->synced) {
+                echo '<tr><td class="c0">'.get_string('lastsynced', 'assignment_github').':</td>';
+                echo '    <td class="c1">'.userdate($repo->synced);
+            }
         }
         echo '</table>';
         echo $OUTPUT->box_end();

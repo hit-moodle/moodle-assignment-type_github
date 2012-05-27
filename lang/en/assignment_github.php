@@ -10,6 +10,7 @@ $string['editusername_help'] = 'Username or organization of the repository.';
 $string['emailnotset'] = 'Email used to commit is not set.';
 $string['githubreposetting'] = 'Git Repo';
 $string['githubreposettinglist'] = 'All repo list';
+$string['lastsynced'] = 'Last sync';
 $string['latestcommits'] = 'Latest commits';
 $string['memberemail'] = '{$a}\'s email';
 $string['memberemail_help'] = 'Email which the member use to commit code into this repository';

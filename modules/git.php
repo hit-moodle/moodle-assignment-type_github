@@ -242,7 +242,7 @@ class git {
         return $repo;
     }
 
-    public function add_repo($url, $members, $type) {
+    public function add_repo($url, $type) {
         
         try {
             $repo = $this->fetch_repo_info($url);
@@ -255,7 +255,6 @@ class git {
             'repo' => $repo['name'],
             'server' => $repo['server'],
             'url' => $url,
-            'members' => json_encode($members),
         );
 
         return $this->add_record($data, $type);
@@ -295,7 +294,7 @@ class git {
         }
     }
 
-    public function update_repo($id, $url, $members) {
+    public function update_repo($id, $url) {
 
         try {
             $repo = $this->fetch_repo_info($url);
@@ -309,7 +308,6 @@ class git {
             'repo' => $repo['name'],
             'server' => $repo['server'],
             'url' => $url,
-            'members' => json_encode($members),
         );
 
         return $this->update_record($data);
