@@ -12,16 +12,9 @@ class git {
 
     private $_table = 'assignment_github_repos';
 
-    private $_server = array(
-                            'github.com' => 'github',
-                            'bitbucket.org' => 'bitbucket',
-                            'code.google.com' => 'googlecode',
-                            'sourceforge.net' => 'sourceforge',
-                           );
+    private $_server = array();
 
-    private $_api = array(
-                          'github' => 'service_github_api',
-                         );
+    private $_api = array();
 
     private $_service_list = array();
 
@@ -32,12 +25,17 @@ class git {
      * @param integer $group
      */
     public function __construct($course, $assignment, $user = 0, $group = 0) {
-        global $CFG;
+        global $CFG, $ASSIGNMENT_GITHUB;
 
         $this->_course = $course;
         $this->_assignment = $assignment;
         $this->_user = $user;
         $this->_group = $group;
+
+        foreach($ASSIGNMENT_GITHUB->server as $server => $cfg) {
+            $this->_server[$cfg['domain']] = $server;
+            $this->_api[$server] = $cfg['service'];
+        }
     }
 
     /**
