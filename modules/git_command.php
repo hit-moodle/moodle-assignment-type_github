@@ -1,5 +1,7 @@
 <?php
 
+require_once($CFG->libdir.'/filelib.php');
+
 class git_command {
 
     private $workspace;
@@ -128,7 +130,7 @@ class git_command {
         foreach($worktrees as $worktree) {
             if ($worktree != '.' && $worktree != '..') {
                 if (preg_match($pattern, $worktree)) {
-                    $this->delete_dir($this->workspace.'/'.$worktree);
+                    fulldelete($this->workspace.'/'.$worktree);
                 }
             }
         }
@@ -147,25 +149,5 @@ class git_command {
         }
 
         return trim($output);
-    }
-
-    private function delete_dir($dir) {
-
-        $dir = rtrim($dir, '/');
-        if (!is_dir($dir)) {
-            return;
-        }
-        $objects = scandir($dir);
-        foreach($objects as $object) {
-            if ($object != '.' && $object != '..') {
-                $target = $dir.'/'.$object;
-                if (filetype($target) == 'dir') {
-                    $this->delete_dir($target);
-                } else {
-                    unlink($target);
-                }
-            }
-        }
-        rmdir($dir);
     }
 }
