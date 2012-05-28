@@ -113,7 +113,7 @@ class git_command {
     private function git_delete($param) {
 
         $dir = $this->get_worktree($param);
-        return $this->delete_dir($dir);
+        return fulldelete($dir);
     }
 
     private function get_worktree($param) {
