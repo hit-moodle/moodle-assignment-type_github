@@ -69,7 +69,7 @@ class git_analyzer {
             return null;
         }
         preg_match_all('/\[C:([^\]]+)\]\[A:([^\n]+)\]\n\[E:([^\]]+)\]\[D:([^\]]+)\]\[([^\n]*)\]\n'.
-                       '\s*(\d+) files changed, (\d+) insertions\(\+\), (\d+) deletions\(-\)/i',
+                       '\s*(\d+) files? changed,?\s*((\d+) insertions\(\+\))?,?\s*((\d+) deletions\(-\))?/i',
                        $response, $matches, PREG_SET_ORDER);
         if (!$matches) {
             return null;
@@ -84,8 +84,8 @@ class git_analyzer {
             $log->date = $match[4];
             $log->subject = $match[5];
             $log->files = $match[6];
-            $log->insertions = $match[7];
-            $log->deletions = $match[8];
+            $log->insertions = $match[8] ? $match[8] : 0;
+            $log->deletions = $match[10] ? $match[10] : 0;
             $logs[$log->commit] = $this->convert_encoding($log);
         }
         return $logs;
