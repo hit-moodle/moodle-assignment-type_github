@@ -4,9 +4,7 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
     global $DB;
     $dbman = $DB->get_manager();
 
-    $result = true;
-
-    if ($result && $oldversion < 20120322) {
+    if ($oldversion < 20120322) {
 
         // Define table assignment_github_logs to be created
         $table = new xmldb_table('assignment_github_logs');
@@ -37,30 +35,28 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
 
         // Conditionally launch create table for assignment_github_logs
         if (!$dbman->table_exists($table)) {
-            $result = $result && $dbman->create_table($table);
+            $dbman->create_table($table);
         }
 
         // github savepoint reached
         upgrade_plugin_savepoint(true, 20120322, 'assignment', 'github');
     }
 
-    if ($result && $oldversion < 20120527) {
+    if ($oldversion < 20120529) {
 
         $table = new xmldb_table('assignment_github_repos');
 
         $field = new xmldb_field('members');
         if ($dbman->field_exists($table, $field)) {
-            $result = $result && $dbman->drop_field($table, $field);
+            $dbman->drop_field($table, $field);
         }
 
         $field = new xmldb_field('synced', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'updated');
         if (!$dbman->field_exists($table, $field)) {
-            $result = $result && $dbman->add_field($table, $field);
+            $dbman->add_field($table, $field);
         }
 
-        upgrade_plugin_savepoint(true, 20120527, 'assignment', 'github');
+        upgrade_plugin_savepoint(true, 20120529, 'assignment', 'github');
     }
-
-    return $result;
 }
 
