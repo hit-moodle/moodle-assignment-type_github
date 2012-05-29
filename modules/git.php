@@ -194,22 +194,10 @@ class git {
         }
 
         try {
-            $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom, $limitnum);
-            if ($result) {
-                foreach($result as $k => $v) {
-                    $result[$k] = $this->convert_record($v);
-                }
-            }
-            return $result;
+            return $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom, $limitnum);
         } catch(Exception $e) {
             return false;
         }
-    }
-
-    private function convert_record($record) {
-
-        $record->members = json_decode($record->members, true);
-        return $record;
     }
 
     private function fetch_repo_info($url) {

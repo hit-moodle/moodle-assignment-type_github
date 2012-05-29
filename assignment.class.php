@@ -604,14 +604,14 @@ class assignment_github extends assignment_base {
                                                  shorten_text($log->commit, 11), array('target' => '_blank'));
                 $log_table .= '<td class="cell">'.$commit_link.'</td>';
         
-                $key = $emails[$log->email];
-                if (empty($key)) {
+                if (empty($emails[$log->email])) {
                     if ($gitlinks[$log->email]) {
                         $author = html_writer::link($gitlinks[$log->email], $log->author, array('target' => '_blank'));
                     } else {
                         $author = $log->author;
                     }
                 } else {
+                    $key = $emails[$log->email];
                     if ($gitlinks[$log->email]) {
                         $author = html_writer::link($gitlinks[$log->email], $members[$key]->fullname, array('target' => '_blank'));
                     } else {
