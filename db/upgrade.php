@@ -58,5 +58,30 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
 
         upgrade_plugin_savepoint(true, 20120529, 'assignment', 'github');
     }
+
+    if ($oldversion < 20120608) {
+
+        $table = new xmldb_table('assignment_github_extra');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('assignment', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('type', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('data1', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
+        $table->add_field('data2', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
+        $table->add_field('data3', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
+        $table->add_field('data4', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
+        $table->add_field('data5', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        $table->add_index('assignment', XMLDB_INDEX_UNIQUE, array('assignment'));
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 20120608, 'assignment', 'github');
+    }
+    
 }
 
