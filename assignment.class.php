@@ -638,6 +638,66 @@ class assignment_github extends assignment_base {
         }
     }
 
+    function setup_elements(&$mform) {
+        global $CFG, $COURSE, $ASSIGNMENT_GITHUB;
+
+        $type_options = array(0 => 'None');
+        foreach($ASSIGNMENT_GITHUB->code as $code => $server) {
+            $type_options[$code] = $ASSIGNMENT_GITHUB->server[$server]['name'];
+        }
+        $mform->addElement('select', 'var1', 'Service', $type_options);
+        $mform->addElement('text', 'org', 'Organization Name');
+        $mform->setType('org', PARAM_TEXT);
+
+        $course_context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        plagiarism_get_form_elements_module($mform, $course_context);
+    }
+
+    function add_instance($assignment) {
+        global $DB;
+
+        $assignmentid = parent::add_instance($assignment);
+
+        $extra = new stdClass();
+        $extra->assignment = $assignmentid;
+        $extra->type = $assignment->var1;
+        $extra->data1 = trim($assignment->org);
+        $extra_id = $DB->insert_record('assignment_github_extra', $extra);
+
+        return $assignmentid;
+    }
+
+    function update_instance($assignment) {
+        global $DB;
+
+        $assignment->id = $assignment->instance;
+        if (!$extra = $DB->get_record('assignment_github_extra', array('assignment' => $assignment->id))) {
+            $extra = new stdClass();
+            $extra->assignment = $assignment->id;
+            $extra->type = $assignment->var1;
+            $extra->data1 = trim($assignment->org);
+            $DB->insert_record('assignment_github_extra', $extra);
+        }
+
+        $extra = $DB->get_record('assignment_github_extra', array('assignment' => $assignment->id));
+        $extra->type = $assignment->var1;
+        $extra->data1 = trim($assignment->org);
+        $DB->update_record('assignment_github_extra', $extra);
+
+        return parent::update_instance($assignment);
+    }
+
+    function form_data_preprocessing(&$default_values, $form) {
+        global $DB;
+
+        $assignmentid = $default_values['id'];
+        if (!$extra = $DB->get_record('assignment_github_extra', array('assignment' => $assignmentid))) {
+            return;
+        }
+
+        $default_values['org'] = $extra->data1;
+    }
+
     /**
      * Deletes an assignment activity
      *

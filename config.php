@@ -20,8 +20,19 @@ $ASSIGNMENT_GITHUB->workspace = $CFG->dataroot . '/github';  // default path whe
 $ASSIGNMENT_GITHUB->branch = 'master';                       // the branch which the plugin analyze by default
 
 $ASSIGNMENT_GITHUB->server = array(
-    'github' => array('domain' => 'github.com', 'service' => 'service_github_api'),
-    // 'bitbucket' => array('domain' => 'bitbucket.org', 'service' => 'service_bitbucket_api'),
-    // 'googlecode' => array('domain' => 'code.google.com', 'service' => 'service_googlecode_api'),
-    // 'sourceforge' => array('domain' => 'sourceforge.net', 'service' => 'service_sourceforge_api'),
+    'github' => array('name' => 'GitHub',
+                      'domain' => 'github.com',
+                      'service' => 'service_github_api',
+                      'client_id' => '',
+                      'secret' => ''),
+    //'bitbucket' => array('name' => 'BitBucket', 'domain' => 'bitbucket.org', 'service' => 'service_bitbucket_api'),
+    //'googlecode' => array('name' => 'Google Code', 'domain' => 'code.google.com', 'service' => 'service_googlecode_api'),
+    //'sourceforge' => array('name' => 'SourceForge', 'domain' => 'sourceforge.net', 'service' => 'service_sourceforge_api'),
+);
+
+$ASSIGNMENT_GITHUB->code = array(
+    1 => 'github',
+    //2 => 'bitbucket',
+    //3 => 'googlecode',
+    //4 => 'sourceforge',
 );
