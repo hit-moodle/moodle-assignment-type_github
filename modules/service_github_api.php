@@ -20,6 +20,8 @@ class service_github_api {
 
     private $_client;
 
+    private $_server = 'github';
+
     public function __construct() {
 
         include_once(ASSIGNMENT_GITHUB_LIB.'Autoloader.php');
@@ -161,5 +163,57 @@ class service_github_api {
         if ($user) {
             return $this->_web_root . '/' . $user['login'];
         }
+    }
+
+    public function auth($username = null, $secret) {
+
+        $this->_client->authenticate(null, $secret, Github_Client::OAUTH_ACCESS_TOKEN);
+    }
+
+    public function create($name) {
+
+        try {
+            return $this->_client->getRepoApi()->create($name);
+        } catch (Exception $e) {
+            return null;
+        }
+        return null;
+    }
+
+    public function request_access_url($redirect_uri) {
+        global $ASSIGNMENT_GITHUB;
+
+        $cfg = $ASSIGNMENT_GITHUB->server[$this->_server];
+        $url = 'https://github.com/login/oauth/authorize?';
+        $params = array(
+            'client_id='.$cfg['client_id'],
+            'scope=user,repo',
+            'redirect_uri='.urlencode($redirect_uri),
+        );
+
+        return $url . implode('&', $params);
+    }
+
+    public function exchange_access_token($code) {
+        global $ASSIGNMENT_GITHUB;
+
+        $cfg = $ASSIGNMENT_GITHUB->server[$this->_server];
+        $params = array(
+            'client_id' => $cfg['client_id'],
+            'client_secret' => $cfg['secret'],
+            'code' => $code,
+        );
+
+        try {
+            $response = $this->_client->getHttpClient()->doRequest('https://github.com/login/oauth/access_token', $params, 'POST');
+            preg_match('/access_token=([^&]+)&/', $response, $match);
+            if (!empty($match[1])) {
+                return $match[1];
+            }
+        } catch (Exception $e) {
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
+        }
+
+        return null;
     }
 }
