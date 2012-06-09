@@ -32,6 +32,12 @@ class Github_Client
     const AUTH_HTTP_TOKEN = 'http_token';
 
     /**
+     * Constant for authentication method. Indicates the new login method with
+     * with access_token via HTTP Authentication.
+     */
+    const OAUTH_ACCESS_TOKEN = 'access_token';
+
+    /**
      * The httpClient instance used to communicate with GitHub
      *
      * @var Github_HttpClient_Interface
