@@ -144,9 +144,9 @@ class Github_Api_Repo extends Github_Api
      * @param   string  $repo             the name of the repo
      * @return  array                     informations about the repo
      */
-    public function setPublic($repo)
+    public function setPublic($username, $repo)
     {
-        $response = $this->get('repos/set/public/'.urlencode($repo));
+        $response = $this->get('repos/set/public/'.urlencode($username).'/'.urlencode($repo));
 
         return $response['repository'];
     }
@@ -158,9 +158,9 @@ class Github_Api_Repo extends Github_Api
      * @param   string  $repo             the name of the repo
      * @return  array                     informations about the repo
      */
-    public function setPrivate($repo)
+    public function setPrivate($username, $repo)
     {
-        $response = $this->get('repos/set/private/'.urlencode($repo));
+        $response = $this->get('repos/set/private/'.urlencode($username).'/'.urlencode($repo));
 
         return $response['repository'];
     }
