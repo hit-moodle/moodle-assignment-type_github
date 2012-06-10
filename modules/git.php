@@ -241,6 +241,7 @@ class git {
             'repo' => $repo['name'],
             'server' => $repo['server'],
             'url' => $url,
+            'is_public' => $repo['public'],
         );
 
         return $this->add_record($data, $type);
@@ -294,6 +295,7 @@ class git {
             'repo' => $repo['name'],
             'server' => $repo['server'],
             'url' => $url,
+            'is_public' => $repo['public'],
         );
 
         return $this->update_record($data);

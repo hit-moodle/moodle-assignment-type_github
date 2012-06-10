@@ -14,15 +14,27 @@ class assignment_github extends assignment_base {
 
     private $capability = array();
 
+    private $extra;
+
     function assignment_github($cmid='staticonly', $assignment=NULL, $cm=NULL, $course=NULL) {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'github';
 
         if ($cmid != 'staticonly') {
-            $this->group = new stdClass();
             $this->init_group();
             $this->init_permission();
+            $this->extra = $this->get_extra_settings();
         }
+    }
+
+    function get_extra_settings() {
+        global $DB;
+
+        if (!empty($this->assignment->id)) {
+            return $DB->get_record('assignment_github_extra', array('assignment' => $this->assignment->id));
+        }
+
+        return null;
     }
 
     function view() {
@@ -56,7 +68,7 @@ class assignment_github extends assignment_base {
     }
 
     /**
-     * Init group settings. It will init the private varible group
+     *Privati Init group settings. It will init the private varible group
      * $this->group object
      *   mode: if this assignment is group mode
      *   id: group id
@@ -66,6 +78,7 @@ class assignment_github extends assignment_base {
     private function init_group() {
         global $USER;
 
+        $this->group = new stdClass();
         $this->group->mode = groups_get_activity_groupmode($this->cm);
         $aag = has_capability('moodle/site:accessallgroups', $this->context);
 
@@ -161,8 +174,10 @@ class assignment_github extends assignment_base {
         echo html_writer::tag('h3', get_string('githubreposetting', 'assignment_github'), array('class' => 'git_h3'));
         $this->print_member_list();
         echo $OUTPUT->box_start('generalbox boxaligncenter git_box');
+        $this->print_extra_info();
 
-        $mform = new mod_assignment_github_edit_form(null, array('group' => $this->group, 'repo' => null, 'submission' => null));
+        $form = $this->get_form_class();
+        $mform = new $form(null, array('group' => $this->group, 'repo' => null, 'submission' => null, 'extra' => $this->extra));
         if (!$mform->is_cancelled() && $github_info = $mform->get_submitted_data()) {
             try {
                 $repo = $this->save_repo($repo, $github_info);
@@ -264,6 +279,11 @@ class assignment_github extends assignment_base {
             return null;
         }
 
+        $github_info = $this->preprocess_github_info($github_info);
+        if (empty($github_info)) {
+            return null;
+        }
+
         $result = false;
         if ($repoid) {
             $result = $this->git->update_repo($repoid, $github_info->url);
@@ -281,9 +301,61 @@ class assignment_github extends assignment_base {
         $data = new stdClass();
         $urls = $service->generate_http_from_git($repo->url);
         $data->email = $github_info->email;
+        if (!empty($github_info->username)) {
+            $data->username = $github_info->username;
+        }
         $this->update_submission($USER->id, $data);
 
         return $repo;
+    }
+
+    /**
+     *
+     *
+     * @return object
+     */
+    private function preprocess_github_info($github_info) {
+        global $ASSIGNMENT_GITHUB;
+
+        if (empty($this->extra->type) || !$this->extra->type) {
+            return $github_info;
+        }
+
+        $server = $ASSIGNMENT_GITHUB->code[$this->extra->type];
+        $username = $this->extra->data1;
+        $project = $github_info->project;
+        $name = $username . '/' . $project;
+        $service = $this->git->get_api_service($server);
+
+        // OAuth
+        $service->auth(null, $this->extra->data2);
+
+        try {
+            // check if this repo exists
+            $api = $service->get_repo_api();
+            $check = $api->show($username, $project);
+            if (empty($check)) {
+                $repo = $service->create($name, $github_info->public);
+            } else {
+                $repo = $check;
+            }
+
+            if (!empty($repo)) {
+                $github_info->url = $service->generate_git_url($service->parse_git_url($repo['url']), 'ssh');
+                if ($repo['private'] && $github_info->public) {
+                    $api->setPublic($username, $project);
+                } else if (!$repo['private'] && !$github_info->public) {
+                    $api->setPrivate($username, $project);
+                }
+            } else {
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            throw new Exception(get_string('serviceerror', 'assignment_github'));
+            return null;
+        }
+
+        return $github_info;
     }
 
     /**
@@ -308,8 +380,21 @@ class assignment_github extends assignment_base {
         $url->remove_params('edit');
 
         $submission = $this->get_submission($USER->id);
-        $mform = new mod_assignment_github_edit_form($url->out(), array('group' => $this->group, 'repo' => $repo, 'submission' => $submission));
+        $form = $this->get_form_class();
+        $mform = new $form($url->out(), array('group' => $this->group, 'repo' => $repo, 'submission' => $submission, 'extra' => $this->extra));
         $mform->display();
+    }
+
+    private function get_form_class() {
+        global $ASSIGNMENT_GITHUB;
+
+        $form = 'mod_assignment_github_edit_form';
+        if ($this->extra->type) {
+            $type = $ASSIGNMENT_GITHUB->code[$this->extra->type];
+            $form .= '_'.$type;
+        }
+
+        return $form;
     }
 
     public function get_members_by_id($id, $fields = array(), $sort = 'lastname ASC') {
@@ -341,6 +426,10 @@ class assignment_github extends assignment_base {
         $update->id = $submission->id;
         if (!empty($data->email)) {
             $update->data1 = $data->email;
+        }
+
+        if (!empty($data->username)) {
+            $update->data2 = $data->username;
         }
 
         if (empty($data->timemodified)) {
@@ -782,6 +871,31 @@ class assignment_github extends assignment_base {
 
         return $status;
     }
+
+    function print_extra_info() {
+        global $ASSIGNMENT_GITHUB;
+
+        if (!$this->capability['grade']) {
+            return;
+        }
+
+        $server = $ASSIGNMENT_GITHUB->code[$this->extra->type];
+        $service = $this->git->get_api_service($server);
+
+        if ($server == 'github') {
+            $redirect_uri = new moodle_url("/mod/assignment/type/github/oauth.php?id={$this->cm->id}");
+            $url = $service->request_access_url($redirect_uri);
+            $link = html_writer::link($url, shorten_text($url));
+            if (empty($this->extra->data2)) {
+                echo '<div class="clearer"></div>';
+                echo '<div class="reportlink">'.get_string('githubconfigureguide1', 'assignment_github', $this->extra->data1).$link.'</div>';
+            } else {
+                echo '<div class="clearer"></div>';
+                echo '<div class="reportlink">'.get_string('githubconfigureguide2', 'assignment_github', $this->extra->data1).$link.'</div>';
+                echo '<div class="reportlink">'.get_string('githubconfigureguide3', 'assignment_github', $ASSIGNMENT_GITHUB->server[$server]['account']).'</div>';
+            }
+        }
+    }
 }
 
 class mod_assignment_github_edit_form extends moodleform {
@@ -817,6 +931,67 @@ class mod_assignment_github_edit_form extends moodleform {
 
         if ($repo) {
             $mform->setDefault('url', $repo->url);
+        }
+
+        // Submit button. No cancel
+        $this->add_action_buttons(false);
+    }
+}
+
+class mod_assignment_github_edit_form_github extends moodleform {
+
+    function definition() {
+        global $USER;
+
+        $mform = $this->_form;
+        $repo = $this->_customdata['repo'];
+        $group = $this->_customdata['group'];
+        $submission = $this->_customdata['submission'];
+        $cfg = $this->_customdata['extra'];
+
+        if (empty($cfg->data2)) {
+            $mform->addElement('static', null, null, '<div class="red">'.get_string('submitnotallowed', 'assignment_github').'</div>');
+            return;
+        }
+
+        // visible elements
+        $mform->addElement('text', 'project', get_string('project', 'assignment_github'));
+        $mform->setType('project', PARAM_ALPHANUMEXT);
+        $mform->addRule('project', get_string('required'), 'required', null, 'client');
+        if ($repo) {
+            $mform->setDefault('project', $repo->repo);
+        }
+
+        $options = array(1 => get_string('public', 'assignment_github'), 0 => get_string('private', 'assignment_github'));
+        $mform->addElement('select', 'public', get_string('publicorprivate', 'assignment_github'), $options);
+        if ($repo) {
+            $mform->setDefault('public', $repo->is_public);
+        }
+
+        // teacher is not allowed to edit students' email
+        if ($group->mode && $group->ismember || !$group->mode) {
+            $mform->addElement('text', 'username', get_string('githubusername', 'assignment_github'));
+            $mform->setType('username', PARAM_ALPHANUMEXT);
+            $mform->addRule('username', get_string('required'), 'required', null, 'client');
+
+            $mform->addElement('text', 'email', get_string('memberemail', 'assignment_github', fullname($USER)));
+            $mform->addElement('static', null, null, '<div>'.get_string('memberemail_help', 'assignment_github').'</div>');
+            $mform->setType('email', PARAM_EMAIL);
+            $mform->addRule('email', get_string('required'), 'required', null, 'client');
+
+            if ($submission && $submission->data1) {
+                $email = $submission->data1;
+            } else {
+                $email = $USER->email;
+            }
+            $mform->setDefault('email', $email);
+
+            if ($submission && $submission->data1) {
+                $username = $submission->data2;
+            } else {
+                $usernmae = null;
+            }
+            $mform->setDefault('username', $username);
         }
 
         // Submit button. No cancel

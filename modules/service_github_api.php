@@ -143,6 +143,7 @@ class service_github_api {
             'name' => $result['name'],
             'owner' => $result['owner'],
             'created' => $result['created_at'],
+            'public' => intval(!$result['private']),
         );
         return $repository;
     }
@@ -170,10 +171,10 @@ class service_github_api {
         $this->_client->authenticate(null, $secret, Github_Client::OAUTH_ACCESS_TOKEN);
     }
 
-    public function create($name) {
+    public function create($name, $public = true) {
 
         try {
-            return $this->_client->getRepoApi()->create($name);
+            return $this->_client->getRepoApi()->create($name, null, null, $public);
         } catch (Exception $e) {
             return null;
         }
@@ -215,5 +216,10 @@ class service_github_api {
         }
 
         return null;
+    }
+
+    public function get_repo_api() {
+
+        return $this->_client->getRepoApi();
     }
 }

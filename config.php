@@ -23,6 +23,7 @@ $ASSIGNMENT_GITHUB->server = array(
     'github' => array('name' => 'GitHub',
                       'domain' => 'github.com',
                       'service' => 'service_github_api',
+                      'account' => '',
                       'client_id' => '',
                       'secret' => ''),
     //'bitbucket' => array('name' => 'BitBucket', 'domain' => 'bitbucket.org', 'service' => 'service_bitbucket_api'),

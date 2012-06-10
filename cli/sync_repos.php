@@ -285,10 +285,10 @@ class sync_git_repos {
         // convert url to git:// first, in case user use other protocol
         $service =& $this->_git->get_api_service($repo->server);
         $git = $service->parse_git_url($repo->url);
-        if ($git['type'] == 'git') {
-            $url = $repo->url;
-        } else {
+        if ($repo->is_public) {
             $url = $service->generate_git_url($git, 'git');
+        } else {
+            $url = $service->generate_git_url($git, 'ssh');
         }
 
         try {
