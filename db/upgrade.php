@@ -59,7 +59,7 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 20120529, 'assignment', 'github');
     }
 
-    if ($oldversion < 20120608) {
+    if ($oldversion < 20120610) {
 
         $table = new xmldb_table('assignment_github_extra');
 
@@ -80,8 +80,14 @@ function xmldb_assignment_github_upgrade($oldversion = 0) {
             $dbman->create_table($table);
         }
 
-        upgrade_plugin_savepoint(true, 20120608, 'assignment', 'github');
+        $table = new xmldb_table('assignment_github_repos');
+        $field = new xmldb_field('is_public', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '1', 'synced');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 20120610, 'assignment', 'github');
     }
-    
 }
 

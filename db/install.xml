@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/assignment/type/github/db" VERSION="20120608" COMMENT="XMLDB file for Moodle mod/assignment/type/github"
+<XMLDB PATH="mod/assignment/type/github/db" VERSION="20120610" COMMENT="XMLDB file for Moodle mod/assignment/type/github"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
 >
@@ -18,7 +18,8 @@
         <FIELD NAME="updated_user" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user who update this record" PREVIOUS="created_user" NEXT="created"/>
         <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record created time" PREVIOUS="updated_user" NEXT="updated"/>
         <FIELD NAME="updated" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Record updated time" PREVIOUS="created" NEXT="synced"/>
-        <FIELD NAME="synced" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Last sync time" PREVIOUS="updated"/>
+        <FIELD NAME="synced" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Last sync time" PREVIOUS="updated" NEXT="is_public"/>
+        <FIELD NAME="is_public" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="synced"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
