@@ -177,6 +177,7 @@ class git_logger {
 
         try {
             $logs = array();
+            $conditions['assignment'] = $this->assignment;
             $result = $DB->get_records($this->_table, $conditions, $sort, $fields, $limitfrom, $limitnum);
             if ($result) {
                 foreach($result as $k => $v) {
