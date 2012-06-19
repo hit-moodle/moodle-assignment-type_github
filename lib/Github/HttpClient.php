@@ -13,11 +13,11 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
      * @var array
      */
     protected $options = array(
-        'protocol'   => 'http',
-        'url'        => ':protocol://github.com/api/v2/:format/:path',
+        'protocol'   => 'https',
+        'url'        => ':protocol://api.github.com/:path',
         'format'     => 'json',
         'user_agent' => 'php-github-api (http://github.com/ornicar/php-github-api)',
-        'http_port'  => 80,
+        'http_port'  => 443,
         'timeout'    => 10,
         'login'      => null,
         'token'      => null
@@ -52,7 +52,6 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
      *
      * @param  string   $path            Request path
      * @param  array    $parameters     GET Parameters
-     * @param  string   $httpMethod     HTTP method to use
      * @param  array    $options        Request options
      *
      * @return array                    Data
@@ -67,7 +66,6 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
      *
      * @param  string   $path            Request path
      * @param  array    $parameters     POST Parameters
-     * @param  string   $httpMethod     HTTP method to use
      * @param  array    $options        reconfigure the request for this call only
      *
      * @return array                    Data
@@ -75,6 +73,63 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
     public function post($path, array $parameters = array(), array $options = array())
     {
         return $this->request($path, $parameters, 'POST', $options);
+    }
+
+    /**
+     * Send a PUT request
+     *
+     * @param  string   $path           Request path
+     * @param  array    $parameters     PUT Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function put($path, array $parameters = array(), array $options = array())
+    {
+        return $this->request($path, $parameters, 'PUT', $options);
+    }
+
+    /**
+     * Send a HEAD request
+     *
+     * @param  string   $path           Request path
+     * @param  array    $parameters     HEAD Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function head($path, array $parameters = array(), array $options = array())
+    {
+        return $this->request($path, $parameters, 'HEAD', $options);
+    }
+
+    /**
+     * Send a PATCH request
+     * PATCH is a relatively new and uncommon HTTP verb, so resource endpoints also accept POST requests
+     *
+     * @param  string   $path           Request path
+     * @param  array    $parameters     PATCH Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function patch($path, array $parameters = array(), array $options = array())
+    {
+        return $this->request($path, $parameters, 'PATCH', $options);
+    }
+
+    /**
+     * Send a DELETE request
+     *
+     * @param  string   $path           Request path
+     * @param  array    $parameters     DELETE Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function delete($path, array $parameters = array(), array $options = array())
+    {
+        return $this->request($path, $parameters, 'DELETE', $options);
     }
 
     /**
@@ -113,6 +168,8 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
     /**
      * Get a JSON response and transform it to a PHP array
      *
+     * @param string $response
+     * @param array $options
      * @return  array   the response
      */
     protected function decodeResponse($response, array $options)
@@ -121,25 +178,9 @@ abstract class Github_HttpClient implements Github_HttpClientInterface
             return $response;
         } elseif ('json' === $options['format']) {
             return json_decode($response, true);
-        } elseif ('xml' === $options['format']) {
-            $xml = new SimpleXMLElement($response);
-            return $this->xmlToArray($xml);
         }
 
         throw new Exception(__CLASS__.' only supports json & text format, '.$options['format'].' given.');
-    }
-
-    private function xmlToArray($xml)
-    {
-        $array = json_decode(json_encode($xml), TRUE);
-        foreach (array_slice($array, 0) as $key => $value) {
-            if (empty($value)) {
-                $array[$key] = NULL;
-            } elseif (is_array($value)) {
-                $array[$key] = $this->xmlToArray($value);
-            }
-        }
-        return $array;
     }
 
     /**

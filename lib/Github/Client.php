@@ -33,14 +33,14 @@ class Github_Client
 
     /**
      * Constant for authentication method. Indicates the new login method with
-     * with access_token via HTTP Authentication.
+     * with access token via HTTP Authentication.
      */
     const OAUTH_ACCESS_TOKEN = 'access_token';
 
     /**
      * The httpClient instance used to communicate with GitHub
      *
-     * @var Github_HttpClient_Interface
+     * @var Github_HttpClientInterface
      */
     protected $httpClient = null;
 
@@ -54,7 +54,7 @@ class Github_Client
     /**
      * Instanciate a new GitHub client
      *
-     * @param  Github_HttpClient_Interface $httpClient custom http client
+     * @param  Github_HttpClientInterface $httpClient custom http client
      */
     public function __construct(Github_HttpClientInterface $httpClient = null)
     {
@@ -100,7 +100,7 @@ class Github_Client
      * Call any path, GET method
      * Ex: $api->get('repos/show/my-username/my-repo')
      *
-     * @param   string  $path            the GitHub path
+     * @param   string  $path             the GitHub path
      * @param   array   $parameters       GET parameters
      * @param   array   $requestOptions   reconfigure the request
      * @return  array                     data returned
@@ -114,7 +114,7 @@ class Github_Client
      * Call any path, POST method
      * Ex: $api->post('repos/show/my-username', array('email' => 'my-new-email@provider.org'))
      *
-     * @param   string  $path            the GitHub path
+     * @param   string  $path             the GitHub path
      * @param   array   $parameters       POST parameters
      * @param   array   $requestOptions   reconfigure the request
      * @return  array                     data returned
@@ -125,9 +125,65 @@ class Github_Client
     }
 
     /**
+     * Call any path, HEAD method
+     * Ex: $api->head('repos/show/my-username/my-repo')
+     *
+     * @param   string  $path             the GitHub path
+     * @param   array   $parameters       HEAD parameters
+     * @param   array   $requestOptions   reconfigure the request
+     * @return  array                     data returned
+     */
+    public function head($path, array $parameters = array(), $requestOptions = array())
+    {
+        return $this->getHttpClient()->head($path, $parameters, $requestOptions);
+    }
+
+    /**
+     * Call any path, PUT method
+     * Ex: $api->put('repos/show/my-username', array('email' => 'my-new-email@provider.org'))
+     *
+     * @param   string  $path             the GitHub path
+     * @param   array   $parameters       PUT parameters
+     * @param   array   $requestOptions   reconfigure the request
+     * @return  array                     data returned
+     */
+    public function put($path, array $parameters = array(), $requestOptions = array())
+    {
+        return $this->getHttpClient()->put($path, $parameters, $requestOptions);
+    }
+
+    /**
+     * Call any path, PATCH method
+     * Ex: $api->patch('repos/show/my-username/my-repo')
+     *
+     * @param   string  $path             the GitHub path
+     * @param   array   $parameters       PATCH parameters
+     * @param   array   $requestOptions   reconfigure the request
+     * @return  array                     data returned
+     */
+    public function patch($path, array $parameters = array(), $requestOptions = array())
+    {
+        return $this->getHttpClient()->patch($path, $parameters, $requestOptions);
+    }
+
+    /**
+     * Call any path, DELETE method
+     * Ex: $api->delete('repos/show/my-username', array('email' => 'my-new-email@provider.org'))
+     *
+     * @param   string  $path             the GitHub path
+     * @param   array   $parameters       DELETE parameters
+     * @param   array   $requestOptions   reconfigure the request
+     * @return  array                     data returned
+     */
+    public function delete($path, array $parameters = array(), $requestOptions = array())
+    {
+        return $this->getHttpClient()->delete($path, $parameters, $requestOptions);
+    }
+
+    /**
      * Get the http client.
      *
-     * @return  Github_HttpClient_Interface   a request instance
+     * @return  Github_HttpClientInterface   a request instance
      */
     public function getHttpClient()
     {
@@ -137,11 +193,11 @@ class Github_Client
     /**
      * Inject another http client
      *
-     * @param   Github_HttpClient_Interface   a httpClient instance
+     * @param   Github_HttpClientInterface  $httpClient a httpClient instance
      *
      * @return  null
      */
-    public function setHttpClient(Github_HttpClient_Interface $httpClient)
+    public function setHttpClient(Github_HttpClientInterface $httpClient)
     {
         $this->httpClient = $httpClient;
     }
@@ -248,7 +304,7 @@ class Github_Client
      * Inject an API instance
      *
      * @param   string                $name the API name
-     * @param   Github_ApiInterface  $api  the API instance
+     * @param   Github_ApiInterface  $instance  the API instance
      *
      * @return  null
      */

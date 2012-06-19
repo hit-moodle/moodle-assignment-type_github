@@ -11,7 +11,7 @@ class Github_HttpClient_Curl extends Github_HttpClient
     /**
      * Send a request to the server, receive a response
      *
-     * @param  string   $path          Request url
+     * @param  string   $url          Request url
      * @param  array    $parameters    Parameters
      * @param  string   $httpMethod    HTTP method to use
      * @param  array    $options       Request options
@@ -22,7 +22,7 @@ class Github_HttpClient_Curl extends Github_HttpClient
     {
         $curlOptions = array();
 
-        if ($options['login'] || $options['auth_method'] == Github_Client::OAUTH_ACCESS_TOKEN) {
+        if ($options['login']) {
             switch ($options['auth_method']) {
                 case Github_Client::AUTH_HTTP_PASSWORD:
                     $curlOptions += array(
@@ -56,10 +56,37 @@ class Github_HttpClient_Curl extends Github_HttpClient
                 $url .= '?'.$queryString;
             } else {
                 $curlOptions += array(
-                    CURLOPT_POST => true,
-                    CURLOPT_POSTFIELDS => $queryString
+                    CURLOPT_POSTFIELDS => json_encode($parameters),
                 );
             }
+        }
+
+        $curlValue = true;
+        switch($httpMethod) {
+            case 'GET':
+                $curlMethod = CURLOPT_HTTPGET;
+                break;
+            case 'POST':
+                $curlMethod = CURLOPT_POST;
+                break;
+            case 'HEAD':
+                $curlMethod = CURLOPT_CUSTOMREQUEST;
+                $curlValue = "HEAD";
+                break;
+            case 'PUT':
+                $curlMethod = CURLOPT_CUSTOMREQUEST;
+                $curlValue = "PUT";
+                break;
+            case 'DELETE':
+                $curlMethod = CURLOPT_CUSTOMREQUEST;
+                $curlValue = "DELETE";
+                break;
+            case 'PATCH':
+                // since PATCH is new the end points accept as POST
+                $curlMethod = CURLOPT_POST;
+                break;
+            default:
+                throw new Github_HttpClient_Exception('Method currently not supported');
         }
 
         $curlOptions += array(
@@ -68,13 +95,13 @@ class Github_HttpClient_Curl extends Github_HttpClient
             CURLOPT_USERAGENT => $options['user_agent'],
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => $options['timeout']
+            CURLOPT_TIMEOUT => $options['timeout'],
+            $curlMethod => $curlValue
         );
 
         $response = $this->doCurlCall($curlOptions);
 
-        if (!in_array($response['headers']['http_code'], array(0, 200, 201))) {
+        if (!in_array($response['headers']['http_code'], array(0, 200, 201, 204))) {
             throw new Github_HttpClient_Exception(null, (int) $response['headers']['http_code']);
         }
 

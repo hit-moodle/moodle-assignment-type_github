@@ -13,7 +13,6 @@ interface Github_HttpClientInterface
      *
      * @param  string   $path            Request path
      * @param  array    $parameters     GET Parameters
-     * @param  string   $httpMethod     HTTP method to use
      * @param  array    $options        reconfigure the request for this call only
      *
      * @return array                    Data
@@ -25,12 +24,55 @@ interface Github_HttpClientInterface
      *
      * @param  string   $path            Request path
      * @param  array    $parameters     POST Parameters
-     * @param  string   $httpMethod     HTTP method to use
      * @param  array    $options        reconfigure the request for this call only
      *
      * @return array                    Data
      */
     public function post($path, array $parameters = array(), array $options = array());
+
+    /**
+     * Send a HEAD request
+     *
+     * @param  string   $path            Request path
+     * @param  array    $parameters     HEAD Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function head($path, array $parameters = array(), array $options = array());
+
+    /**
+     * Send a PATCH request
+     *
+     * @param  string   $path            Request path
+     * @param  array    $parameters     PATCH Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function patch($path, array $parameters = array(), array $options = array());
+
+    /**
+     * Send a PUT request
+     *
+     * @param  string   $path            Request path
+     * @param  array    $parameters     PUT Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function put($path, array $parameters = array(), array $options = array());
+
+    /**
+     * Send a DELETE request
+     *
+     * @param  string   $path            Request path
+     * @param  array    $parameters     DELETE Parameters
+     * @param  array    $options        reconfigure the request for this call only
+     *
+     * @return array                    Data
+     */
+    public function delete($path, array $parameters = array(), array $options = array());
 
     /**
      * Change an option value.

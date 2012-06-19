@@ -21,7 +21,7 @@ class Github_Api_Repo extends Github_Api
      */
     public function search($query, $language = '', $startPage = 1)
     {
-        $response = $this->get('repos/search/'.urlencode($query), array(
+        $response = $this->get('legacy/repos/search/'.urlencode($query), array(
             'language' => strtolower($language),
             'start_page' => $startPage
         ));
@@ -38,9 +38,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getUserRepos($username)
     {
-        $response = $this->get('repos/show/'.urlencode($username));
+        $response = $this->get('users/'.urlencode($username).'/repos');
 
-        return $response['repositories'];
+        return $response;
     }
 
     /**
@@ -50,9 +50,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getPushableRepos()
     {
-        $response = $this->get('repos/pushable');
+        $response = $this->get('user/repos', array('type' => 'member'));
 
-        return $response['repositories'];
+        return $response;
     }
 
     /**
@@ -65,9 +65,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function show($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo));
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo));
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
@@ -80,14 +80,20 @@ class Github_Api_Repo extends Github_Api
      * @param   bool    $public           1 for public, 0 for private
      * @return  array                     returns repo data
      */
-    public function create($name, $description = '', $homepage = '', $public = true)
+    public function create($name, $description = '', $homepage = '', $private = false, $organization = '')
     {
-        $response = $this->post('repos/create', array(
+        $parameters = array(
             'name' => $name,
             'description' => $description,
             'homepage' => $homepage,
-            'public' => $public
-        ));
+            'private' => $private
+        );
+
+        if ($organization) {
+            $response = $this->post('org/'.urlencode($organization).'repos', $parameters);
+        } else {
+            $response = $this->post('user/repos', $parameters);
+        }
 
         return $response['repository'];
     }
@@ -96,29 +102,14 @@ class Github_Api_Repo extends Github_Api
      * delete repo
      * http://develop.github.com/p/repo.html
      *
-     * @param   string  $name             name of the repository
-     * @param   string  $token            delete token
-     * @param   string  $force            force repository deletion
+     * @param   string  $username         the user who owns the repo
+     * @param   string  $repo             name of the repository
      *
      * @return  string|array              returns delete_token or repo status
      */
-    public function delete($name, $token = null, $force = false)
+    public function delete($username, $repo)
     {
-        if ($token === null) {
-            $response = $this->post('repos/delete/'.urlencode($name));
-
-            $token = $response['delete_token'];
-
-            if (!$force) {
-                return $token;
-            }
-        }
-
-        $response = $this->post('repos/delete/'.urlencode($name), array(
-            'delete_token' => $token,
-        ));
-
-        return $response;
+        $response = $this->delete('repos/'.urlencode($username).'/'.urlencode($repo));
     }
 
     /**
@@ -132,84 +123,83 @@ class Github_Api_Repo extends Github_Api
      */
     public function setRepoInfo($username, $repo, $values)
     {
-        $response = $this->post('repos/show/'.urlencode($username).'/'.urlencode($repo), array('values' => $values));
+        $response = $this->patch('repos/'.urlencode($username).'/'.urlencode($repo), $values);
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
      * Set the visibility of a repostory to public
      * http://develop.github.com/p/repo.html
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
      * @return  array                     informations about the repo
      */
     public function setPublic($username, $repo)
     {
-        $response = $this->get('repos/set/public/'.urlencode($username).'/'.urlencode($repo));
-
-        return $response['repository'];
+        return $this->setRepoInfo($username, $repo, array('private' => false));
     }
 
     /**
      * Set the visibility of a repostory to private
      * http://develop.github.com/p/repo.html
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
      * @return  array                     informations about the repo
      */
     public function setPrivate($username, $repo)
     {
-        $response = $this->get('repos/set/private/'.urlencode($username).'/'.urlencode($repo));
-
-        return $response['repository'];
+        return $this->setRepoInfo($username, $repo, array('private' => true));
     }
 
     /**
      * Get the list of deploy keys for a repository
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
      * @return  array                     the list of deploy keys
      */
-    public function getDeployKeys($repo)
+    public function getDeployKeys($username, $repo)
     {
-        $response = $this->get('repos/keys/'.urlencode($repo));
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/keys');
 
-        return $response['public_keys'];
+        return $response;
     }
 
     /**
      * Add a deploy key for a repository
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
      * @param   string  $title            the title of the key
      * @param   string  $key              the public key data
      * @return  array                     the list of deploy keys
      */
-    public function addDeployKey($repo, $title, $key)
+    public function addDeployKey($username, $repo, $title, $key)
     {
-        $response = $this->post('repos/key/'.urlencode($repo).'/add', array(
+        $response = $this->post('repos/'.urlencode($username).'/'.urlencode($repo).'/keys', array(
             'title' => $title,
             'key' => $key
         ));
 
-        return $response['public_keys'];
+        return $response;
     }
 
     /**
      * Delete a deploy key from a repository
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
      * @param   string  $id               the the id of the key to remove
      * @return  array                     the list of deploy keys
      */
-    public function removeDeployKey($repo, $id)
+    public function removeDeployKey($username, $repo, $id)
     {
-        $response = $this->post('repos/key/'.urlencode($repo).'/remove', array(
-            'id' => $id,
-        ));
+        $response = $this->delete('repos/'.urlencode($url).'/'.urlencode($repo).'/keys/'.urlencode($id));
 
-        return $response['public_keys'];
+        return $response;
     }
 
     /**
@@ -222,39 +212,41 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoCollaborators($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/collaborators');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/collaborators');
 
-        return $response['collaborators'];
+        return $response;
     }
 
     /**
      * Add a collaborator to a repository
      * http://develop.github.com/p/repo.html
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
-     * @param   string  $username         the user who should be added as a collaborator
+     * @param   string  $user             the user who should be added as a collaborator
      * @return  array                     list of the repo collaborators
      */
-    public function addRepoCollaborator($repo, $username)
+    public function addRepoCollaborator($username, $repo, $user)
     {
-        $response = $this->post('repos/collaborators/'.urlencode($repo).'/add/'.urlencode($username));
+        $response = $this->put('repos/'.urlencode($username).'/'.urlencode($repo).'/collaborators/'.urlencode($user));
 
-        return $response['collaborators'];
+        return $response;
     }
 
     /**
      * Delete a collaborator from a repository
      * http://develop.github.com/p/repo.html
      *
+     * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
-     * @param   string  $username         the user who should be removed as a collaborator
+     * @param   string  $user             the user who should be removed as a collaborator
      * @return  array                     list of the repo collaborators
      */
-    public function removeRepoCollaborator($repo, $username)
+    public function removeRepoCollaborator($username, $repo, $user)
     {
-        $response = $this->post('repos/collaborators/'.urlencode($repo).'/remove/'.urlencode($username));
+        $response = $this->delete('repos/'.urlencode($username).'/'.urlencode($repo).'/collaborators/'.urlencode($user));
 
-        return $response['collaborators'];
+        return $response;
     }
 
     /**
@@ -267,9 +259,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function watch($username, $repo)
     {
-        $response = $this->get('repos/watch/'.urlencode($username).'/'.urlencode($repo));
+        $response = $this->put('user/watched/'.urlencode($username).'/'.urlencode($repo));
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
@@ -282,9 +274,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function unwatch($username, $repo)
     {
-        $response = $this->get('repos/unwatch/'.urlencode($username).'/'.urlencode($repo));
+        $response = $this->delete('user/watched/'.urlencode($username).'/'.urlencode($repo));
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
@@ -293,13 +285,18 @@ class Github_Api_Repo extends Github_Api
      *
      * @param   string  $username         the user who owns the repo
      * @param   string  $repo             the name of the repo
+     * @param   string  $organization     the repository will be forked into this organization
      * @return  array                     informations about the newly forked repo
      */
-    public function fork($username, $repo)
+    public function fork($username, $repo, $organization = '')
     {
-        $response = $this->get('repos/fork/'.urlencode($username).'/'.urlencode($repo));
+        if ($organization) {
+            $response = $this->post('repos/'.urlencode($username).'/'.urlencode($repo).'/forks', array('org' => $organization));
+        } else {
+            $response = $this->post('repos/'.urlencode($username).'/'.urlencode($repo).'/forks');
+        }
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
@@ -312,9 +309,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoTags($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/tags');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/tags');
 
-        return $response['tags'];
+        return $response;
     }
 
     /**
@@ -327,9 +324,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoBranches($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/branches');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/branches');
 
-        return $response['branches'];
+        return $response;
     }
 
     /**
@@ -342,9 +339,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoWatchers($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/watchers');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/watchers');
 
-        return $response['watchers'];
+        return $response;
     }
 
     /**
@@ -357,9 +354,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoNetwork($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/network');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/forks');
 
-        return $response['network'];
+        return $response;
     }
 
     /**
@@ -372,9 +369,9 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoLanguages($username, $repo)
     {
-        $response = $this->get('repos/show/'.urlencode($username).'/'.urlencode($repo).'/languages');
+        $response = $this->get('repos/'.urlencode($username).'/'.urlencode($repo).'/languages');
 
-        return $response['languages'];
+        return $response;
     }
 
     /**
@@ -388,13 +385,14 @@ class Github_Api_Repo extends Github_Api
      */
     public function getRepoContributors($username, $repo, $includingNonGithubUsers = false)
     {
-        $url = 'repos/show/'.urlencode($username).'/'.urlencode($repo).'/contributors';
+        $url = 'repos/'.urlencode($username).'/'.urlencode($repo).'/contributors';
         if ($includingNonGithubUsers) {
-            $url .= '/anon';
+            $response = $this->get($url, array('anon' => true));
+        } else {
+            $response = $this->get($url);
         }
-        $response = $this->get($url);
 
-        return $response['contributors'];
+        return $response;
     }
 
 }

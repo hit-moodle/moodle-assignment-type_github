@@ -144,6 +144,7 @@ class service_github_api {
             'owner' => $result['owner'],
             'created' => $result['created_at'],
             'public' => intval(!$result['private']),
+            'private' => $result['private'],
         );
         return $repository;
     }
@@ -174,7 +175,8 @@ class service_github_api {
     public function create($name, $public = true) {
 
         try {
-            return $this->_client->getRepoApi()->create($name, null, null, $public);
+            $private = !$public;
+            return $this->_client->getRepoApi()->create($name, null, null, $private);
         } catch (Exception $e) {
             return null;
         }
