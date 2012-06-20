@@ -172,12 +172,13 @@ class service_github_api {
         $this->_client->authenticate(null, $secret, Github_Client::OAUTH_ACCESS_TOKEN);
     }
 
-    public function create($name, $public = true) {
+    public function create($name, $public = true, $organization = '') {
 
         try {
             $private = !$public;
-            return $this->_client->getRepoApi()->create($name, null, null, $private);
+            return $this->_client->getRepoApi()->create($name, null, null, $private, $organization);
         } catch (Exception $e) {
+            print_r($e);
             return null;
         }
         return null;

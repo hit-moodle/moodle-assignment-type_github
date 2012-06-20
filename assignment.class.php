@@ -324,24 +324,28 @@ class assignment_github extends assignment_base {
         $server = $ASSIGNMENT_GITHUB->code[$this->extra->type];
         $username = $this->extra->data1;
         $project = $github_info->project;
-        $name = $username . '/' . $project;
         $service = $this->git->get_api_service($server);
 
         // OAuth
         $service->auth(null, $this->extra->data2);
+        $api = $service->get_repo_api();
 
         try {
             // check if this repo exists
-            $api = $service->get_repo_api();
             $check = $api->show($username, $project);
-            if (empty($check)) {
-                $repo = $service->create($name, $github_info->public);
-            } else {
-                $repo = $check;
-            }
+        } catch (Exception $e) {
+            $check = null;
+        }
 
+        if (empty($check)) {
+            $repo = $service->create($project, $github_info->public, $this->extra->data1);
+        } else {
+            $repo = $check;
+        }
+
+        try {
             if (!empty($repo)) {
-                $github_info->url = $service->generate_git_url($service->parse_git_url($repo['url']), 'ssh');
+                $github_info->url = $service->generate_git_url($service->parse_git_url($repo['ssh_url']), 'ssh');
                 if ($repo['private'] && $github_info->public) {
                     $api->setPublic($username, $project);
                 } else if (!$repo['private'] && !$github_info->public) {
