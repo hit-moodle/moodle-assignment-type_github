@@ -90,12 +90,12 @@ class Github_Api_Repo extends Github_Api
         );
 
         if ($organization) {
-            $response = $this->post('org/'.urlencode($organization).'repos', $parameters);
+            $response = $this->post('orgs/'.urlencode($organization).'/repos', $parameters);
         } else {
             $response = $this->post('user/repos', $parameters);
         }
 
-        return $response['repository'];
+        return $response;
     }
 
     /**
