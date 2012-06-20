@@ -22,7 +22,7 @@ class Github_HttpClient_Curl extends Github_HttpClient
     {
         $curlOptions = array();
 
-        if ($options['login']) {
+        if ($options['login'] || $options['auth_method'] == Github_Client::OAUTH_ACCESS_TOKEN) {
             switch ($options['auth_method']) {
                 case Github_Client::AUTH_HTTP_PASSWORD:
                     $curlOptions += array(
@@ -35,9 +35,9 @@ class Github_HttpClient_Curl extends Github_HttpClient
                     );
                     break;
                 case Github_Client::OAUTH_ACCESS_TOKEN:
-                    $parameters = array_merge(array(
-                        'access_token' => $options['secret']
-                            ), $parameters);
+                    $curlOptions += array(
+                        CURLOPT_HTTPHEADER => array('Authorization: token '.$options['secret']),
+                    );
                     break;
                 case Github_Client::AUTH_URL_TOKEN:
                 default:
