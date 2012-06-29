@@ -321,7 +321,7 @@ class sync_git_repos {
         }
 
         // Check remote
-        if (!$this->remote_changed($repo, $worktree)) {
+        if ($this->remote_changed($repo, $worktree)) {
             $this->show_message('Remote changed. Recreate logs.');
             return $this->recreate($repo, $worktree);
         }
@@ -356,9 +356,9 @@ class sync_git_repos {
         } catch (Exception $e) {
         }
         if (in_array($repo->url, $remote)) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
