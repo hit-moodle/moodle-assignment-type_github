@@ -320,6 +320,12 @@ class sync_git_repos {
             return $this->recreate($repo, $worktree);
         }
 
+        // Check remote
+        if (!$this->remote_changed($repo, $worktree)) {
+            $this->show_message('Remote changed. Recreate logs.');
+            return $this->recreate($repo, $worktree);
+        }
+
         try {
             $analyzer = git_analyzer::init($worktree);
             $this->show_message('Pulling...');
@@ -334,6 +340,25 @@ class sync_git_repos {
             $this->show_message('No common commits. Recreate logs.');
             $this->recreate($repo, $worktree);
         }
+    }
+
+    /**
+     * Check if the remote url is changed
+     *
+     * @param object $repo repository setting
+     * @param string $worktree
+     */
+    private function remote_changed($repo, $worktree) {
+
+        $analyzer = git_analyzer::init($worktree);
+        try {
+            $remote = $analyzer->get_remote();
+        } catch (Exception $e) {
+        }
+        if (in_array($repo->url, $remote)) {
+            return true;
+        }
+        return false;
     }
 
     /**

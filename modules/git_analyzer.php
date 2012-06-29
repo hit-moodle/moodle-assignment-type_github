@@ -99,6 +99,21 @@ class git_analyzer {
         return array_filter(preg_replace('/[\s\*]/', '', explode("\n", $output)));
     }
 
+    function get_remote() {
+
+        $params = $this->cmd->prepare_params();
+        $params->worktree = $this->worktree;
+        $params->other = array('-v');
+        $output = $this->cmd->exec('remote', $params);
+
+        $remote = array();
+        preg_match_all('/[^\s]+\s+([^\s]+)\s+\(fetch\)/', $output, $matches, PREG_SET_ORDER);
+        foreach($matches as $match) {
+            $remote[] = $match[1];
+        }
+        return $remote;
+    }
+
     function get_log_by_range($since = '', $until = '') {
 
         $params = array();

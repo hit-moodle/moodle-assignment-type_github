@@ -110,6 +110,16 @@ class git_command {
         return $this->run($dir, $this->command, $param_string);
     }
 
+    private function git_remote($param) {
+
+        $dir = $this->get_worktree($param);
+        $param_string = 'remote';
+        foreach($param->other as $p) {
+            $param_string .= ' '.$p;
+        }
+        return $this->run($dir, $this->command, $param_string);
+    }
+
     private function git_delete($param) {
 
         $dir = $this->get_worktree($param);
