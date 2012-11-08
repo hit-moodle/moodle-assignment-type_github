@@ -22,6 +22,14 @@ Download the zip package on [moodle-assignment-type_github](https://github.com/h
 
 Login to Moodle as web site administrator after you finish downloading. Moodle will leads you to the notification page, telling you it find a new plugin. Just click the install button.
 
+**For clean installation of Moodle 2.3 or 2.4 (rather than an upgraded site):**
+
+you need to enable the 2.2 assignment type in administration under:
+
+```
+ Site admin > Plugins > Activity modules > Manage activities
+```
+
 ## Settings
 
 ### Sync Script
